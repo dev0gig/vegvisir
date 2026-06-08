@@ -80,9 +80,10 @@ body::after {
 .wrap {
   max-width: var(--maxw);
   margin: 0 auto;
-  /* Platz unten fuer die feste Suchleiste reservieren. */
+  /* Platz unten fuer die feste Suchleiste reservieren
+     (Leiste: 16px Abstand + 52px Höhe + etwas Luft). */
   padding: clamp(28px, 6vw, 72px) clamp(18px, 4vw, 40px)
-           calc(120px + env(safe-area-inset-bottom));
+           calc(84px + env(safe-area-inset-bottom));
 }
 
 /* ============ HOME GRID ============ */
