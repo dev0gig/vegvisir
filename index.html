@@ -239,7 +239,6 @@
     border-radius: 26px 26px 0 0;
     box-shadow: 0 -24px 60px -20px rgba(0,0,0,0.8);
     transition: transform 0.42s var(--ease);
-    touch-action: none;
   }
   .sheet.open { transform: translate(-50%, 0); }
   .sheet.dragging { transition: none; }
@@ -250,6 +249,7 @@
   .sheet-handle {
     flex: none; width: 44px; height: 5px; border-radius: 999px;
     background: var(--steel-500); opacity: 0.6; margin: 12px auto 4px; cursor: grab;
+    touch-action: none;
   }
   .sheet.dragging .sheet-handle { cursor: grabbing; }
 
@@ -284,7 +284,12 @@
   .sheet-close:hover { color: var(--steel-100); background: rgba(160,185,230,0.12); border-color: rgba(160,185,230,0.3); }
   .sheet-close svg, .sheet-close i { width: 17px; height: 17px; }
 
-  .sheet-scroll { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+  .sheet-scroll {
+    flex: 1 1 auto; min-height: 0;
+    overflow-y: auto; overflow-x: hidden;
+    overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
 
   /* App-icon grid inside sheets */
   .grid {
