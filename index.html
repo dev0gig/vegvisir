@@ -78,6 +78,11 @@
       radial-gradient(900px 560px at 12% 4%, rgba(54, 78, 140, 0.20), transparent 58%),
       radial-gradient(1200px 900px at 50% 120%, rgba(20, 32, 60, 0.55), transparent 70%),
       linear-gradient(180deg, var(--ink-900), var(--ink-950) 60%);
+    /* Auf eigene GPU-Schicht heben, damit der Hintergrund beim Scrollen
+       nicht neu gezeichnet wird und nicht "nachhinkt". */
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
   }
   body::after {
     content: "";
@@ -85,6 +90,9 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
     opacity: 0.5;
     background-image:
       radial-gradient(1px 1px at 20% 30%, rgba(220, 235, 255, 0.5), transparent),
