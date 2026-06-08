@@ -19,7 +19,8 @@ Links als iOS-Homescreen an.
   (erster Buchstabe). Keine bunten Tönungen, einheitlicher Look.
 - Klick auf eine Kachel öffnet den Link in einem neuen Tab.
 - Norse-Theme (Cinzel/Manrope, Vegvisir-Sigille, Aurora-Hintergrund, Glass-Kacheln).
-  Kein Service-Worker, keine PWA – reine statische Seite.
+- **Installierbar (PWA)** per Web-App-Manifest – ganz ohne Service-Worker, also
+  ohne Offline-Cache. Im Browser „Zum Startbildschirm/Installieren" wählen.
 
 ## Erwartetes Import-Format (Toride-Export)
 
