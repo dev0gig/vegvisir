@@ -14,11 +14,12 @@ Links als iOS-Homescreen an.
   rechts oder Datei aufs Fenster ziehen), gespeichert lokal im Browser (`localStorage`).
 - **iOS-Homescreen-Layout:** Ordner zuerst als Kacheln (mit 2×2-Vorschau), lose
   Bookmarks daneben. Klick auf einen Ordner öffnet ein **Bottom-Sheet** mit den Links.
-- **Icons aus dem Export:** ist im JSON ein `imageUrl` gesetzt, wird es als Icon
-  angezeigt – sonst ein farbiges **Monogramm-Platzhalter** (erster Buchstabe).
+- **Icons aus dem Export:** ist im JSON ein `imageUrl` gesetzt, wird es als
+  bildschirmfüllendes Cover-Icon angezeigt – sonst ein **Monogramm-Platzhalter**
+  (erster Buchstabe). Keine bunten Tönungen, einheitlicher Look.
 - Klick auf eine Kachel öffnet den Link in einem neuen Tab.
-- Norse-Theme (Cinzel/Manrope, Vegvisir-Sigille, Aurora-Hintergrund, Glass-Kacheln),
-  installierbare PWA, offline-fähige App-Shell.
+- Norse-Theme (Cinzel/Manrope, Vegvisir-Sigille, Aurora-Hintergrund, Glass-Kacheln).
+  Kein Service-Worker, keine PWA – reine statische Seite.
 
 ## Erwartetes Import-Format (Toride-Export)
 

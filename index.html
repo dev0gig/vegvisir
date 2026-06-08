@@ -5,12 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Vegvisir — Find your way.</title>
 <meta name="description" content="Eine persönliche Bookmark-Sammlung. Find your way." />
-<meta name="theme-color" content="#060a14" />
 
-<link rel="manifest" href="./manifest.webmanifest" />
 <!-- Favicon: stylized Vegvisir stave -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0f1c'/%3E%3Cg fill='none' stroke='%23cdb27e' stroke-width='3' stroke-linecap='round' transform='translate(50 50)'%3E%3Cg id='s'%3E%3Cline y2='-34'/%3E%3Cline y1='-34' x2='-7' y2='-44'/%3E%3Cline y1='-34' x2='7' y2='-44'/%3E%3Cline x1='-7' y1='-18' x2='7' y2='-18'/%3E%3C/g%3E%3Cuse href='%23s' transform='rotate(45)'/%3E%3Cuse href='%23s' transform='rotate(90)'/%3E%3Cuse href='%23s' transform='rotate(135)'/%3E%3Cuse href='%23s' transform='rotate(180)'/%3E%3Cuse href='%23s' transform='rotate(225)'/%3E%3Cuse href='%23s' transform='rotate(270)'/%3E%3Cuse href='%23s' transform='rotate(315)'/%3E%3C/g%3E%3C/svg%3E" />
-<link rel="apple-touch-icon" href="./icon.svg" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -247,14 +244,14 @@
     position: relative;
     overflow: hidden;
     border-radius: 26%;
-    background: linear-gradient(160deg, var(--m-hi, rgba(160,185,230,0.6)), var(--m-lo, rgba(146,168,210,0.4)));
+    background: linear-gradient(160deg, rgba(160,185,230,0.16), rgba(146,168,210,0.06));
     box-shadow: inset 0 0.5px 0 rgba(255,255,255,0.12);
   }
   .mini .mini-mono {
     position: absolute; inset: 0;
     display: grid; place-items: center;
     font-family: "Cinzel", serif; font-weight: 700;
-    font-size: 0.64rem; color: #0a0f1c;
+    font-size: 0.64rem; color: var(--gold);
     z-index: 0;
   }
   .mini img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
@@ -387,7 +384,7 @@
     aspect-ratio: 1 / 1;
     border-radius: 24%;
     overflow: hidden;
-    background: linear-gradient(160deg, var(--tint-hi, rgba(160,185,230,0.14)), var(--tint-lo, rgba(146,168,210,0.04)));
+    background: linear-gradient(160deg, rgba(160,185,230,0.12), rgba(146,168,210,0.04));
     border: 1px solid var(--glass-border);
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 20px -14px rgba(0,0,0,0.8);
     transition: transform 0.28s var(--ease), box-shadow 0.28s var(--ease), border-color 0.28s var(--ease);
@@ -406,7 +403,7 @@
     display: grid; place-items: center;
     font-family: "Cinzel", serif; font-weight: 600;
     font-size: clamp(1.05rem, 4.2vw, 1.55rem);
-    color: currentColor;
+    color: var(--gold);
     z-index: 0;
   }
   /* Image from the Toride export */
@@ -419,11 +416,11 @@
 
   .tile:hover .tile-ico {
     transform: translateY(-3px) scale(1.07);
-    border-color: var(--tint-edge, rgba(111,214,207,0.45));
+    border-color: rgba(205,178,126,0.4);
     box-shadow:
       inset 0 1px 0 rgba(255,255,255,0.10),
       0 16px 30px -14px rgba(0,0,0,0.85),
-      0 0 22px -4px var(--tint-glow, rgba(111,214,207,0.4));
+      0 0 22px -4px rgba(205,178,126,0.35);
   }
   .tile:active .tile-ico { transform: translateY(-1px) scale(1.02); }
 
@@ -537,29 +534,18 @@
       return (m ? m[0] : (s[0] || "?")).toUpperCase();
     }
 
-    // Deterministic hue per bookmark so tiles read like colourful app icons.
-    function hueOf(s) {
-      let h = 0;
-      s = String(s || "");
-      for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
-      return h % 360;
-    }
-
     function isImg(u) { return typeof u === "string" && u.trim() !== ""; }
 
     /* ---- Tile (single bookmark) ---- */
     function tileHTML(bm) {
       const name = bm.name || hostOf(bm.url);
-      const h = hueOf(name || bm.url);
-      const tint = `--tint-hi:hsla(${h},58%,62%,.22);--tint-lo:hsla(${h},52%,52%,.05);` +
-                   `--tint-edge:hsla(${h},62%,66%,.6);--tint-glow:hsla(${h},62%,66%,.45)`;
       const img = isImg(bm.imageUrl)
         ? `<img class="tile-img" src="${escAttr(bm.imageUrl)}" alt="" loading="lazy" onerror="this.remove()" />`
         : "";
       return `
         <a class="tile" href="${escAttr(hrefOf(bm.url))}" target="_blank" rel="noopener noreferrer"
-           title="${escAttr(name)}" style="${tint}">
-          <span class="tile-ico" style="color:hsl(${h},55%,74%)">
+           title="${escAttr(name)}">
+          <span class="tile-ico">
             <span class="mono">${esc(initial(name))}</span>
             ${img}
           </span>
@@ -571,12 +557,10 @@
     function miniHTML(bm) {
       if (!bm) return `<span class="mini empty"></span>`;
       const name = bm.name || hostOf(bm.url);
-      const h = hueOf(name || bm.url);
-      const style = `--m-hi:hsla(${h},62%,70%,.95);--m-lo:hsla(${h},55%,55%,.6)`;
       const img = isImg(bm.imageUrl)
         ? `<img src="${escAttr(bm.imageUrl)}" alt="" loading="lazy" onerror="this.remove()" />`
         : "";
-      return `<span class="mini" style="${style}"><span class="mini-mono">${esc(initial(name))}</span>${img}</span>`;
+      return `<span class="mini"><span class="mini-mono">${esc(initial(name))}</span>${img}</span>`;
     }
 
     /* ---- Folder tile (home grid) ---- */
@@ -752,8 +736,12 @@
     render();
     if (window.lucide) lucide.createIcons();
 
+    /* Alte Service-Worker + Caches einer früheren PWA-Version entfernen. */
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+      navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister())).catch(() => {});
+    }
+    if (window.caches) {
+      caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
     }
   </script>
 </body>
