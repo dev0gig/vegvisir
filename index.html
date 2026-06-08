@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f1115" />
+  <title>Vegvisir – Bookmarks erfassen</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./icon.svg" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="./icon.svg" alt="" width="26" height="26" />
+      <span>Vegvisir</span>
+    </div>
+    <div class="counter" id="counter">0</div>
+  </header>
+
+  <main>
+    <form id="form" class="card add-form" autocomplete="off">
+      <div class="row">
+        <label for="url">URL</label>
+        <input id="url" name="url" type="url" inputmode="url" placeholder="https://…" required />
+      </div>
+      <div class="row">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" placeholder="wird aus der URL vorgeschlagen" />
+      </div>
+      <div class="row two">
+        <div>
+          <label for="folder">Ordner (optional)</label>
+          <input id="folder" name="folder" type="text" list="folders" placeholder="z.B. Arbeit" />
+          <datalist id="folders"></datalist>
+        </div>
+        <label class="fav-toggle">
+          <input id="favorite" type="checkbox" />
+          <span>Favorit</span>
+        </label>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn ghost" id="cancel-edit" hidden>Abbrechen</button>
+        <button type="submit" class="btn primary" id="submit-btn">Hinzufügen</button>
+      </div>
+    </form>
+
+    <div class="toolbar">
+      <button class="btn" id="export-btn">JSON exportieren</button>
+      <button class="btn" id="import-btn">JSON laden</button>
+      <input id="import-file" type="file" accept=".json" hidden />
+      <button class="btn danger" id="clear-btn">Alle löschen</button>
+    </div>
+
+    <section id="list" class="list"></section>
+
+    <p class="hint">
+      Erfasst lokal auf diesem Gerät. Mit <strong>JSON exportieren</strong> bekommst du eine Datei,
+      die du in Toride über <em>Import / Export → Importieren</em> einliest.
+    </p>
+  </main>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

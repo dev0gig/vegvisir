@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Vegvisir">
+  <rect width="512" height="512" rx="96" fill="#0f1115"/>
+  <g fill="none" stroke="#6366f1" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="256" cy="256" r="120"/>
+    <!-- acht Stäbe -->
+    <g>
+      <path d="M256 96 V160 M256 416 V352 M96 256 H160 M416 256 H352"/>
+      <path d="M143 143 L188 188 M369 369 L324 324 M369 143 L324 188 M143 369 L188 324"/>
+    </g>
+    <!-- Endmarken der vier Hauptstäbe -->
+    <path d="M236 110 L256 86 L276 110"/>
+    <path d="M236 402 L256 426 L276 402"/>
+    <path d="M110 236 L86 256 L110 276"/>
+    <path d="M402 236 L426 256 L402 276"/>
+  </g>
+</svg>
