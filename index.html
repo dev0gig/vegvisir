@@ -349,6 +349,11 @@
     color: var(--gold);
     z-index: 0;
   }
+  /* Sobald ein Bild vorhanden ist, den Buchstaben-Platzhalter ausblenden
+     (damit er bei transparenten Icons nicht durchscheint). */
+  .tile-ico:has(.tile-img) .mono { display: none; }
+  .mini:has(img) .mini-mono { display: none; }
+
   /* Image from the Toride export */
   .tile-ico .tile-img {
     position: absolute; inset: 0;
