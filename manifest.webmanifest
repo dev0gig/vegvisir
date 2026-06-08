@@ -1,12 +1,12 @@
 {
-  "name": "Vegvisir – Bookmarks erfassen",
+  "name": "Vegvisir – Bookmarks",
   "short_name": "Vegvisir",
-  "description": "Bookmarks unterwegs sammeln und als Toride-JSON exportieren.",
+  "description": "Persönliche Bookmark-Sammlung – importiert aus dem Toride-JSON-Export.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0f1115",
-  "theme_color": "#0f1115",
+  "background_color": "#060a14",
+  "theme_color": "#060a14",
   "icons": [
     {
       "src": "./icon.svg",
@@ -14,14 +14,5 @@
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ],
-  "share_target": {
-    "action": "./",
-    "method": "GET",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url"
-    }
-  }
+  ]
 }

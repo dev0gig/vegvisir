@@ -1,27 +1,30 @@
 # Vegvisir
 
-Eine winzige, statische **PWA zum Erfassen von Bookmarks unterwegs** – von überall
-erreichbar über GitHub Pages, ganz ohne Backend und ohne Tailscale.
+Eine statische, eigenständige **Bookmark-Startseite** im Norse-Look – über GitHub Pages
+von überall erreichbar, ohne Backend und ohne Tailscale.
 
-Erfasste Bookmarks liegen lokal im Browser (`localStorage`). Per **JSON exportieren**
-bekommst du eine Datei im exakten Format, das [Toride](https://github.com/dev0gig/toride)
-über *Import / Export → Importieren* einliest.
+Vegvisir **zeigt** deine Bookmarks an, sie werden **ausschließlich per Import** befüllt:
+Du lädst den JSON-Export aus [Toride](https://github.com/dev0gig/toride)
+(*Import / Export → Exportieren*), und Vegvisir legt daraus automatisch Ordner und
+Links als iOS-Homescreen an.
 
-## Features
+## Funktion
 
-- Bookmark hinzufügen: URL, Name, optionaler Ordner, Favorit.
-- Name wird aus der Domain vorgeschlagen, Favicon automatisch als Bild gesetzt.
-- **Export** als `bookmarks-JJJJ-MM-TT.json` (Toride-kompatibel).
-- **Import** des eigenen Exports (zum Weitermachen auf einem anderen Gerät; dubletten-sicher per URL).
-- Installierbar als PWA, funktioniert offline.
-- **Android Share-Target:** Link aus einer beliebigen App „Teilen" → landet vorausgefüllt in Vegvisir.
+- **Nur Import** – kein Erstellen/Bearbeiten im UI. Lädt das Toride-JSON (Button oben
+  rechts oder Datei aufs Fenster ziehen), gespeichert lokal im Browser (`localStorage`).
+- **iOS-Homescreen-Layout:** Ordner zuerst als Kacheln (mit 2×2-Vorschau), lose
+  Bookmarks daneben. Klick auf einen Ordner öffnet ein **Bottom-Sheet** mit den Links.
+- **Icons aus dem Export:** ist im JSON ein `imageUrl` gesetzt, wird es als Icon
+  angezeigt – sonst ein farbiges **Monogramm-Platzhalter** (erster Buchstabe).
+- Klick auf eine Kachel öffnet den Link in einem neuen Tab.
+- Norse-Theme (Cinzel/Manrope, Vegvisir-Sigille, Aurora-Hintergrund, Glass-Kacheln),
+  installierbare PWA, offline-fähige App-Shell.
 
-## Export-Format (Toride)
+## Erwartetes Import-Format (Toride-Export)
 
 ```json
 {
   "version": 1,
-  "exportedAt": "2026-06-08T12:00:00.000Z",
   "folders": [
     { "name": "Arbeit", "icon": "folder",
       "bookmarks": [ { "name": "…", "url": "…", "imageUrl": "…", "isFavorite": true } ] }
@@ -30,17 +33,19 @@ bekommst du eine Datei im exakten Format, das [Toride](https://github.com/dev0gi
 }
 ```
 
+## Technik
+
+Single-File `index.html` (HTML + CSS + JS inline). Einzige externe Abhängigkeiten:
+[Lucide](https://lucide.dev) (Ordner-/UI-Icons) und Google Fonts (Cinzel, Manrope),
+beide per CDN. Kein Build-Schritt.
+
 ## Deploy (GitHub Pages)
 
-Reine statische Dateien, kein Build. In **Settings → Pages**:
-*Source: Deploy from a branch → Branch: `main` / `/ (root)`*.
-
+**Settings → Pages**: *Source: Deploy from a branch → Branch `main` / `/ (root)`*.
 Danach erreichbar unter `https://dev0gig.github.io/vegvisir/`.
 
 ## Lokal testen
 
 ```bash
-python3 -m http.server 8000
-# http://localhost:8000
+python3 -m http.server 8000   # http://localhost:8000
 ```
-(Service Worker & „Installieren" brauchen `https://` oder `localhost`.)

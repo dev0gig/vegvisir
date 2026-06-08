@@ -1,9 +1,7 @@
-const CACHE = 'vegvisir-v1'
+const CACHE = 'vegvisir-v2'
 const SHELL = [
   './',
   './index.html',
-  './styles.css',
-  './app.js',
   './manifest.webmanifest',
   './icon.svg',
 ]
