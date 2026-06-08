@@ -1,0 +1,445 @@
+/* ============ THEME TOKENS ============ */
+:root {
+  --ink-950: #060a14;
+  --ink-900: #0a0f1c;
+  --ink-850: #0d1424;
+  --ink-800: #111a2e;
+
+  --steel-100: #e6edf6;
+  --steel-300: #aebaccb3;
+  --steel-400: #8493a9;
+  --steel-500: #5c6a82;
+  --steel-line: rgba(150, 170, 205, 0.12);
+
+  --gold: #cdb27e;
+  --gold-dim: #9d875e;
+  --teal: #6fd6cf;
+  --teal-dim: #3f8f8c;
+
+  --glass: rgba(146, 168, 210, 0.045);
+  --glass-hi: rgba(160, 185, 230, 0.08);
+  --glass-border: rgba(160, 185, 230, 0.12);
+
+  --radius: 16px;
+  --radius-sm: 12px;
+  --shadow: 0 18px 50px -22px rgba(0, 0, 0, 0.8);
+
+  --maxw: 1240px;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: "Manrope", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  color: var(--steel-100);
+  background: var(--ink-950);
+  line-height: 1.5;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+/* Aurora / night-sky backdrop */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(1100px 620px at 78% -8%, rgba(70, 132, 130, 0.16), transparent 60%),
+    radial-gradient(900px 560px at 12% 4%, rgba(54, 78, 140, 0.20), transparent 58%),
+    radial-gradient(1200px 900px at 50% 120%, rgba(20, 32, 60, 0.55), transparent 70%),
+    linear-gradient(180deg, var(--ink-900), var(--ink-950) 60%);
+  /* Auf eigene GPU-Schicht heben, damit der Hintergrund beim Scrollen
+     nicht neu gezeichnet wird und nicht "nachhinkt". */
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  opacity: 0.5;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(220, 235, 255, 0.5), transparent),
+    radial-gradient(1px 1px at 65% 18%, rgba(220, 235, 255, 0.35), transparent),
+    radial-gradient(1px 1px at 82% 56%, rgba(220, 235, 255, 0.30), transparent),
+    radial-gradient(1px 1px at 38% 72%, rgba(220, 235, 255, 0.28), transparent),
+    radial-gradient(1px 1px at 50% 44%, rgba(220, 235, 255, 0.22), transparent);
+}
+
+.wrap {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  /* Platz unten fuer die feste Suchleiste reservieren. */
+  padding: clamp(28px, 6vw, 72px) clamp(18px, 4vw, 40px)
+           calc(120px + env(safe-area-inset-bottom));
+}
+
+/* ============ HOME GRID ============ */
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(16px, 3.2vw, 30px) clamp(8px, 2vw, 16px);
+  max-width: 760px;
+  margin: 0 auto;
+}
+@media (min-width: 560px) { .home-grid { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 860px) { .home-grid { grid-template-columns: repeat(6, 1fr); max-width: 880px; } }
+
+/* ---- iOS-style folder tile ---- */
+.folder-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  background: none;
+  border: 0;
+  padding: 2px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 18px;
+}
+.folder-tile:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+
+.folder-preview {
+  position: relative;
+  width: 100%;
+  max-width: 76px;
+  margin-inline: auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 26%;
+  padding: 9%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 6%;
+  background: linear-gradient(160deg, rgba(170,190,225,0.16), rgba(146,168,210,0.05));
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 22px -14px rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  transition: transform 0.28s var(--ease), box-shadow 0.28s var(--ease), border-color 0.28s var(--ease);
+  will-change: transform;
+}
+.folder-preview::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(110% 70% at 50% -10%, rgba(255,255,255,0.14), transparent 60%);
+  pointer-events: none;
+}
+.folder-tile:hover .folder-preview {
+  transform: translateY(-3px) scale(1.06);
+  border-color: rgba(205,178,126,0.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 16px 30px -14px rgba(0,0,0,0.9), 0 0 22px -6px rgba(205,178,126,0.35);
+}
+.folder-tile:active .folder-preview { transform: translateY(-1px) scale(1.02); }
+
+/* mini app icons inside the folder preview */
+.mini {
+  position: relative;
+  overflow: hidden;
+  border-radius: 26%;
+  background: linear-gradient(160deg, rgba(160,185,230,0.16), rgba(146,168,210,0.06));
+  box-shadow: inset 0 0.5px 0 rgba(255,255,255,0.12);
+}
+/* Glas-Overlay auch ueber den Mini-Bildern. */
+.mini::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(160deg, rgba(170,190,225,0.14), rgba(146,168,210,0.02) 55%),
+    radial-gradient(110% 70% at 50% -10%, rgba(255,255,255,0.16), transparent 60%);
+  pointer-events: none; z-index: 2;
+}
+.mini.empty::after { display: none; }
+.mini .mini-mono {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-family: "Cinzel", serif; font-weight: 700;
+  font-size: 0.72rem; color: var(--gold);
+  z-index: 0;
+}
+.mini img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+.mini.empty { background: rgba(160,185,230,0.06); box-shadow: none; }
+
+.folder-label {
+  font-size: clamp(0.74rem, 2vw, 0.84rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  color: rgba(221, 229, 242, 0.92);
+  text-align: center;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+  width: 100%;
+  /* Immer max. 2 Zeilen, Rest mit … – Höhe für 2 Zeilen reserviert,
+     damit lange Namen das Raster nie verschieben. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  min-height: calc(2 * 1.25em);
+}
+.folder-tile:hover .folder-label { color: var(--steel-100); }
+
+/* ============ EMPTY STATE / NO RESULTS ============ */
+.empty-home {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: clamp(40px, 10vw, 90px) 16px;
+  text-align: center;
+  color: var(--steel-400);
+}
+.empty-home .eh-ico { width: 54px; height: 54px; color: var(--steel-500); }
+.empty-home p { max-width: 34ch; font-size: 0.95rem; line-height: 1.65; }
+.btn-import {
+  display: inline-flex; align-items: center; gap: 9px;
+  font: inherit; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--ink-900);
+  background: linear-gradient(180deg, #f3ead4, var(--gold));
+  border: 0; padding: 12px 22px; border-radius: 12px; cursor: pointer;
+  box-shadow: 0 12px 34px -14px rgba(205,178,126,0.7);
+  transition: filter .2s var(--ease), transform .2s var(--ease);
+}
+.btn-import:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.btn-import i { width: 18px; height: 18px; }
+
+/* ============ BOTTOM SHEET ============ */
+.sheet-backdrop {
+  position: fixed; inset: 0; z-index: 40;
+  background: rgba(4, 7, 14, 0.55);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.32s var(--ease), visibility 0s linear 0.32s;
+}
+.sheet-backdrop.open { opacity: 1; visibility: visible; transition: opacity 0.32s var(--ease); }
+
+.sheet {
+  position: fixed; left: 50%; bottom: 0; z-index: 50;
+  width: min(720px, 100%);
+  max-height: 86dvh;
+  transform: translate(-50%, 130%);
+  display: flex; flex-direction: column;
+  background: linear-gradient(180deg, rgba(20,28,48,0.92), rgba(10,15,28,0.96));
+  backdrop-filter: blur(22px) saturate(130%); -webkit-backdrop-filter: blur(22px) saturate(130%);
+  border: 1px solid var(--glass-border); border-bottom: 0;
+  border-radius: 26px 26px 0 0;
+  box-shadow: 0 -24px 60px -20px rgba(0,0,0,0.8);
+  transition: transform 0.42s var(--ease);
+}
+.sheet.open { transform: translate(-50%, 0); }
+.sheet.dragging { transition: none; }
+@media (min-width: 720px) {
+  .sheet { bottom: clamp(12px, 4vh, 40px); border-radius: 26px; border-bottom: 1px solid var(--glass-border); }
+}
+
+.sheet-handle {
+  flex: none; width: 44px; height: 5px; border-radius: 999px;
+  background: var(--steel-500); opacity: 0.6; margin: 12px auto 4px; cursor: grab;
+  touch-action: none;
+}
+.sheet.dragging .sheet-handle { cursor: grabbing; }
+
+.sheet-head {
+  flex: none; display: flex; align-items: center; gap: 14px;
+  padding: 8px clamp(18px, 4vw, 28px) 6px;
+}
+.sheet-ico {
+  flex: none; display: grid; place-items: center;
+  width: 40px; height: 40px; border-radius: 12px;
+  color: var(--teal);
+  background: radial-gradient(120% 120% at 30% 20%, rgba(111,214,207,0.18), rgba(111,214,207,0.05));
+  border: 1px solid rgba(111,214,207,0.2);
+}
+.sheet-ico svg, .sheet-ico i { width: 20px; height: 20px; }
+.sheet-title {
+  font-family: "Cinzel", serif; font-weight: 600;
+  font-size: clamp(1.2rem, 4vw, 1.5rem); letter-spacing: 0.05em;
+  color: var(--steel-100); line-height: 1.1;
+}
+.sheet-sub {
+  font-size: 0.74rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--steel-500); font-weight: 600;
+}
+.sheet-close {
+  margin-left: auto; flex: none; display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--glass-border); background: rgba(160,185,230,0.06);
+  color: var(--steel-400); cursor: pointer;
+  transition: color 0.25s var(--ease), background 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.sheet-close:hover { color: var(--steel-100); background: rgba(160,185,230,0.12); border-color: rgba(160,185,230,0.3); }
+.sheet-close svg, .sheet-close i { width: 17px; height: 17px; }
+
+.sheet-scroll {
+  flex: 1 1 auto; min-height: 0;
+  overflow-y: auto; overflow-x: hidden;
+  overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+/* App-icon grid inside sheets */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(14px, 3.2vw, 24px) clamp(6px, 1.6vw, 12px);
+  padding: 10px clamp(14px, 4vw, 28px) clamp(22px, 4vw, 32px);
+}
+@media (min-width: 560px) { .grid { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 860px) { .grid { grid-template-columns: repeat(6, 1fr); } }
+
+/* ============ APP TILES ============ */
+.tile {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  text-decoration: none; color: inherit; padding: 2px; border-radius: 14px;
+}
+.tile:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+
+.tile-ico {
+  position: relative;
+  width: 100%; max-width: 76px; margin-inline: auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 24%;
+  overflow: hidden;
+  background: linear-gradient(160deg, rgba(160,185,230,0.12), rgba(146,168,210,0.04));
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 20px -14px rgba(0,0,0,0.8);
+  transition: transform 0.28s var(--ease), box-shadow 0.28s var(--ease), border-color 0.28s var(--ease);
+  will-change: transform;
+}
+/* Glas-Overlay - liegt ueber dem Bild, damit Bild-Icons denselben dezenten
+   Glassmorph-Look bekommen wie die Platzhalter. */
+.tile-ico::before {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(160deg, rgba(170,190,225,0.14), rgba(146,168,210,0.02) 55%),
+    radial-gradient(110% 70% at 50% -10%, rgba(255,255,255,0.16), transparent 60%);
+  pointer-events: none; z-index: 2;
+}
+/* Placeholder monogram (no image) */
+.tile-ico .mono {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-family: "Cinzel", serif; font-weight: 600;
+  font-size: clamp(1.05rem, 4.2vw, 1.55rem);
+  color: var(--gold);
+  z-index: 0;
+}
+/* Sobald ein Bild vorhanden ist, den Buchstaben-Platzhalter ausblenden
+   (damit er bei transparenten Icons nicht durchscheint). */
+.tile-ico:has(.tile-img) .mono { display: none; }
+.mini:has(img) .mini-mono { display: none; }
+
+/* Image from the Toride export */
+.tile-ico .tile-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.tile:hover .tile-ico {
+  transform: translateY(-3px) scale(1.07);
+  border-color: rgba(205,178,126,0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.10),
+    0 16px 30px -14px rgba(0,0,0,0.85),
+    0 0 22px -4px rgba(205,178,126,0.35);
+}
+.tile:active .tile-ico { transform: translateY(-1px) scale(1.02); }
+
+.tile-name {
+  font-size: clamp(0.72rem, 2vw, 0.82rem);
+  font-weight: 600; letter-spacing: 0.01em;
+  color: var(--steel-300); text-align: center; line-height: 1.25;
+  width: 100%;
+  /* Immer max. 2 Zeilen, Rest mit … – Höhe für 2 Zeilen reserviert,
+     damit lange Namen das Raster nie verschieben. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  min-height: calc(2 * 1.25em);
+  transition: color 0.28s var(--ease);
+}
+.tile:hover .tile-name { color: var(--steel-100); }
+
+/* ============ SEARCH BAR (fest unten) ============ */
+.searchbar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 35;
+  display: flex; align-items: center; gap: 10px;
+  width: min(520px, calc(100% - 32px));
+  height: 52px;
+  padding: 0 8px 0 16px;
+  border-radius: 999px;
+  background: rgba(16, 24, 42, 0.72);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 18px 50px -22px rgba(0, 0, 0, 0.85);
+  transition: border-color .25s var(--ease), box-shadow .25s var(--ease);
+}
+.searchbar:focus-within {
+  border-color: rgba(111,214,207,0.45);
+  box-shadow: 0 18px 50px -22px rgba(0,0,0,0.85), 0 0 0 3px rgba(111,214,207,0.12);
+}
+.searchbar.hidden { display: none; }
+.search-ico { width: 18px; height: 18px; color: var(--steel-400); flex: none; }
+#searchInput {
+  flex: 1 1 auto; min-width: 0;
+  background: none; border: 0; outline: none; appearance: none;
+  font: inherit; font-size: 0.95rem; color: var(--steel-100);
+}
+#searchInput::placeholder { color: var(--steel-500); }
+#searchInput::-webkit-search-cancel-button,
+#searchInput::-webkit-search-decoration { -webkit-appearance: none; display: none; }
+.search-clear {
+  flex: none; display: none; place-items: center;
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--glass-border); background: rgba(160,185,230,0.06);
+  color: var(--steel-400); cursor: pointer;
+  transition: color .25s var(--ease), background .25s var(--ease), border-color .25s var(--ease);
+}
+.search-clear:hover { color: var(--steel-100); background: rgba(160,185,230,0.12); border-color: rgba(160,185,230,0.3); }
+.searchbar.has-query .search-clear { display: grid; }
+.search-clear i { width: 17px; height: 17px; }
+
+/* File-drop hint overlay */
+body.dropping::after { background: rgba(111,214,207,0.06); }
+.drop-veil {
+  position: fixed; inset: 0; z-index: 60; display: none;
+  place-items: center; pointer-events: none;
+  background: rgba(4,7,14,0.6); backdrop-filter: blur(4px);
+  color: var(--teal); font-family: "Cinzel", serif; letter-spacing: 0.1em; font-size: 1.2rem;
+}
+body.dropping .drop-veil { display: grid; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition-duration: 0.01ms !important; }
+}
