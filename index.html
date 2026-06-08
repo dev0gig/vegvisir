@@ -91,35 +91,6 @@
     padding: clamp(28px, 6vw, 72px) clamp(18px, 4vw, 40px) 96px;
   }
 
-  /* ============ IMPORT BUTTON (frosted, top-right) ============ */
-  .import-fab {
-    position: fixed;
-    top: calc(14px + env(safe-area-inset-top));
-    right: 14px;
-    z-index: 30;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    height: 42px;
-    padding: 0 15px;
-    border-radius: 999px;
-    color: var(--gold);
-    background: rgba(160, 185, 230, 0.06);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.82rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    transition: color .25s var(--ease), border-color .25s var(--ease), background .25s var(--ease);
-  }
-  .import-fab:hover { color: #e3cb95; border-color: rgba(205,178,126,0.4); background: rgba(205,178,126,0.08); }
-  .import-fab i { width: 18px; height: 18px; }
-  .import-fab .lbl { display: none; }
-  @media (min-width: 560px) { .import-fab .lbl { display: inline; } }
-
   /* ============ HOME GRID ============ */
   .home-grid {
     display: grid;
@@ -397,9 +368,6 @@
 </style>
 </head>
 <body>
-  <button class="import-fab" id="importBtn" title="Toride-JSON importieren">
-    <i data-lucide="upload"></i><span class="lbl">Import</span>
-  </button>
   <input id="importFile" type="file" accept=".json,application/json" hidden />
 
   <div class="wrap">
@@ -593,9 +561,17 @@
     }
 
     /* ============ IMPORT (Toride JSON) ============ */
+    /* Import ist nur auf der leeren Seite möglich. Für Änderungen muss der
+       localStorage geleert werden. */
     const importFile = document.getElementById("importFile");
     function pickFile() { importFile.click(); }
-    document.getElementById("importBtn").addEventListener("click", pickFile);
+
+    function isEmptyData() {
+      const d = loadData();
+      const folders = (d && d.folders) || [];
+      const roots = (d && d.bookmarks) || [];
+      return folders.length === 0 && roots.length === 0;
+    }
 
     function ingestJson(text) {
       let data;
@@ -619,9 +595,10 @@
       e.target.value = "";
     });
 
-    /* ---- Drag a .json file anywhere onto the page ---- */
+    /* ---- Drag a .json file anywhere onto the page (nur wenn leer) ---- */
     let dragDepth = 0;
     window.addEventListener("dragenter", (e) => {
+      if (!isEmptyData()) return;
       if (e.dataTransfer && [...e.dataTransfer.items].some((i) => i.kind === "file")) {
         e.preventDefault(); dragDepth++; document.body.classList.add("dropping");
       }
@@ -630,6 +607,7 @@
     window.addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove("dropping"); } });
     window.addEventListener("drop", (e) => {
       dragDepth = 0; document.body.classList.remove("dropping");
+      if (!isEmptyData()) return;
       const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
       if (!file) return;
       e.preventDefault();
