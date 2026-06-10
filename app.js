@@ -235,6 +235,17 @@ searchInput.addEventListener("input", () => {
   searchbar.classList.toggle("has-query", query.trim() !== "");
   render();
 });
+// Enter im Suchfeld: Google-Suche mit dem getippten Text in neuem Tab.
+// (Das Suchfeld filtert live die Bookmarks — wer keinen Treffer anklickt,
+//  startet mit Enter direkt die Google-Suche.)
+searchInput.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  const q = searchInput.value.trim();
+  if (!q) return;
+  e.preventDefault();
+  window.open("https://www.google.com/search?q=" + encodeURIComponent(q),
+              "_blank", "noopener,noreferrer");
+});
 document.getElementById("searchClear").addEventListener("click", () => {
   resetSearch();
   searchInput.focus();
