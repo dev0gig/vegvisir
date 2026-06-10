@@ -235,15 +235,15 @@ searchInput.addEventListener("input", () => {
   searchbar.classList.toggle("has-query", query.trim() !== "");
   render();
 });
-// Enter im Suchfeld: Google-Suche mit dem getippten Text in neuem Tab.
+// Enter im Suchfeld: DuckDuckGo-Suche mit dem getippten Text in neuem Tab.
 // (Das Suchfeld filtert live die Bookmarks — wer keinen Treffer anklickt,
-//  startet mit Enter direkt die Google-Suche.)
+//  startet mit Enter direkt die Web-Suche. DuckDuckGo wegen Privatsphaere.)
 searchInput.addEventListener("keydown", (e) => {
   if (e.key !== "Enter") return;
   const q = searchInput.value.trim();
   if (!q) return;
   e.preventDefault();
-  window.open("https://www.google.com/search?q=" + encodeURIComponent(q),
+  window.open("https://duckduckgo.com/?q=" + encodeURIComponent(q),
               "_blank", "noopener,noreferrer");
 });
 document.getElementById("searchClear").addEventListener("click", () => {
