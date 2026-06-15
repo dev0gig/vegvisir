@@ -79,6 +79,17 @@ body {
   overflow-x: hidden;
 }
 
+/* Scrollbalken unsichtbar machen – Scrollen selbst bleibt überall möglich */
+* {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* altes Edge/IE */
+}
+*::-webkit-scrollbar {          /* Chrome, Safari, neues Edge */
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 /* Aurora / night-sky backdrop */
 body::before {
   content: "";
