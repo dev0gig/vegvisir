@@ -542,6 +542,18 @@ body.dropping::after { background: rgba(111,214,207,0.06); }
 }
 .tw-close:hover { color: var(--steel-100); background: rgba(160,185,230,0.12); border-color: rgba(160,185,230,0.3); }
 .tw-close i, .tw-close svg { width: 16px; height: 16px; }
+
+/* Zusätzliche Icon-Knöpfe im Fenster-Header (z.B. "Tag zurücksetzen") */
+.tw-action {
+  flex: none; display: grid; place-items: center;
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 1px solid var(--glass-border); background: rgba(160,185,230,0.06);
+  color: var(--steel-400); cursor: pointer;
+  transition: color .2s var(--ease), background .2s var(--ease), border-color .2s var(--ease);
+}
+.tw-action:hover { color: var(--steel-100); background: rgba(160,185,230,0.12); border-color: rgba(160,185,230,0.3); }
+.tw-action.danger:hover { color: #e08a8a; background: rgba(224,138,138,0.13); border-color: rgba(224,138,138,0.4); }
+.tw-action i, .tw-action svg { width: 16px; height: 16px; }
 .tw-body { flex: 1 1 auto; min-height: 0; overflow: auto; }
 
 /* ============ RECHNER ============ */

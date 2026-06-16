@@ -398,13 +398,32 @@ function openToolWindow(tool) {
   win.style.left = Math.max(8, (window.innerWidth - w) / 2) + "px";
   win.style.top = Math.max(8, (window.innerHeight - h) / 3) + "px";
 
+  const closeBtn = win.querySelector(".tw-close");
+
+  // Schnittstelle, die ein Tool in render() bekommt: eigene Icon-Knöpfe in die
+  // Titelleiste hängen (z.B. "Zurücksetzen") und das Fenster schließen.
+  const api = {
+    addHeaderAction({ icon, title, onClick, danger }) {
+      const btn = document.createElement("button");
+      btn.className = "tw-action" + (danger ? " danger" : "");
+      btn.title = title || "";
+      btn.setAttribute("aria-label", title || "");
+      btn.innerHTML = `<i data-lucide="${escAttr(icon || "circle")}"></i>`;
+      btn.addEventListener("click", onClick);
+      closeBtn.before(btn); // immer links vom Schließen-Knopf
+      if (window.lucide) lucide.createIcons();
+      return btn;
+    },
+    close: () => closeToolWindow(tool.id),
+  };
+
   let cleanup = null;
   const body = win.querySelector(".tw-body");
-  try { cleanup = tool.render(body) || null; }
+  try { cleanup = tool.render(body, api) || null; }
   catch { body.textContent = "Fehler beim Laden des Werkzeugs."; }
   openWindows[tool.id] = { el: win, cleanup };
 
-  win.querySelector(".tw-close").addEventListener("click", () => closeToolWindow(tool.id));
+  closeBtn.addEventListener("click", () => closeToolWindow(tool.id));
   win.addEventListener("pointerdown", () => focusWindow(win), true);
   makeWindowDraggable(win, win.querySelector("[data-drag]"));
   focusWindow(win);
@@ -423,7 +442,7 @@ function closeToolWindow(id) {
 function makeWindowDraggable(win, handle) {
   let startX = 0, startY = 0, originX = 0, originY = 0, dragging = false;
   handle.addEventListener("pointerdown", (e) => {
-    if (e.target.closest(".tw-close")) return; // Schließen-Knopf nicht zum Ziehen nutzen
+    if (e.target.closest("button")) return; // Knöpfe in der Titelleiste nicht zum Ziehen nutzen
     dragging = true;
     startX = e.clientX; startY = e.clientY;
     const r = win.getBoundingClientRect();

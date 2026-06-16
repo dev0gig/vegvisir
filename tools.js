@@ -59,11 +59,23 @@ window.VEG_TOOLS = [
 
       const root = container.querySelector(".calc");
       const displayEl = container.querySelector("[data-display]");
+      const KEY = "vegvisir.tool.rechner";
 
       let cur = "0";        // aktuell eingegebene/angezeigte Zahl (String, mit Komma)
       let prev = null;      // vorheriger Operand (Number)
       let op = null;        // ausstehende Operation: + - * /
       let overwrite = true; // nächste Ziffer überschreibt die Anzeige
+
+      // Letzten Stand aus dem Browser laden, damit nichts verloren geht.
+      try {
+        const s = JSON.parse(localStorage.getItem(KEY) || "null");
+        if (s && typeof s === "object") {
+          cur = s.cur ?? "0"; prev = s.prev ?? null; op = s.op ?? null; overwrite = s.overwrite ?? true;
+        }
+      } catch {}
+      const save = () => {
+        try { localStorage.setItem(KEY, JSON.stringify({ cur, prev, op, overwrite })); } catch {}
+      };
 
       const num = (s) => parseFloat(String(s).replace(",", "."));
       const fmt = (n) => {
@@ -144,15 +156,16 @@ window.VEG_TOOLS = [
       root.addEventListener("click", (e) => {
         const b = e.target.closest("button");
         if (!b) return;
-        if (b.dataset.digit != null) { inputDigit(b.dataset.digit); return; }
-        if (b.dataset.op) { setOp(b.dataset.op); return; }
-        switch (b.dataset.action) {
+        if (b.dataset.digit != null) inputDigit(b.dataset.digit);
+        else if (b.dataset.op) setOp(b.dataset.op);
+        else switch (b.dataset.action) {
           case "dot": inputDot(); break;
           case "equals": equals(); break;
           case "percent": percent(); break;
           case "negate": negate(); break;
           case "clear": clearAll(); break;
         }
+        save();
       });
 
       // Tastatur funktioniert, solange das Fenster den Fokus hat.
@@ -166,10 +179,12 @@ window.VEG_TOOLS = [
         else if (k === "Escape") clearAll();
         else if (k === "Backspace") backspace();
         else return;
+        save();
         e.stopPropagation();
       });
 
       setTimeout(() => root.focus(), 30);
+      markOp(op);
       show();
     }
   },
@@ -179,8 +194,8 @@ window.VEG_TOOLS = [
     name: "Arbeitszeit",
     icon: "clock",
     width: 360,
-    height: 600,
-    render(container) {
+    height: 720,
+    render(container, api) {
       const KEY = "vegvisir.tool.arbeitszeit";
 
       container.innerHTML = `
@@ -194,13 +209,13 @@ window.VEG_TOOLS = [
             <div class="wt-goals">
               <div class="wt-goal">
                 <label>Minimum</label>
-                <input type="range" data-min min="1" max="12" step="0.5" value="4">
-                <span class="wt-val" data-minval>4:00</span>
+                <input type="range" data-min min="1" max="12" step="0.5" value="8">
+                <span class="wt-val" data-minval>8:00</span>
               </div>
               <div class="wt-goal">
                 <label>Maximum</label>
-                <input type="range" data-max min="1" max="12" step="0.5" value="8">
-                <span class="wt-val" data-maxval>8:00</span>
+                <input type="range" data-max min="1" max="12" step="0.5" value="10">
+                <span class="wt-val" data-maxval>10:00</span>
               </div>
             </div>
           </div>
@@ -253,18 +268,14 @@ window.VEG_TOOLS = [
             </div>
             <div class="wt-pauses" data-pauselist></div>
           </div>
-
-          <div class="wt-footer">
-            <button class="wt-btn danger" data-reset>↺ Tag zurücksetzen</button>
-          </div>
         </div>`;
 
       const $ = (s) => container.querySelector(s);
 
       // Zustand wird im Browser gespeichert (inkl. der Min/Max-Ziele).
-      let state = { start: null, pauses: [], openPause: null, minH: 4, maxH: 8 };
+      let state = { start: null, pauses: [], openPause: null, minH: 8, maxH: 10 };
       try { const s = localStorage.getItem(KEY); if (s) Object.assign(state, JSON.parse(s)); } catch {}
-      let minH = state.minH ?? 4, maxH = state.maxH ?? 8;
+      let minH = state.minH ?? 8, maxH = state.maxH ?? 10;
       let ticker = null;
 
       const save = () => {
@@ -391,7 +402,11 @@ window.VEG_TOOLS = [
       $("[data-setstart]").addEventListener("click", setStart);
       $("[data-openpause]").addEventListener("click", openPause);
       $("[data-closepause]").addEventListener("click", closePause);
-      $("[data-reset]").addEventListener("click", resetDay);
+
+      // "Tag zurücksetzen" als Icon rechts im Fenster-Header (gleiche Zeile).
+      if (api && api.addHeaderAction) {
+        api.addHeaderAction({ icon: "rotate-ccw", title: "Tag zurücksetzen", danger: true, onClick: resetDay });
+      }
 
       const minSlider = $("[data-min]"), maxSlider = $("[data-max]");
       minSlider.value = minH; $("[data-minval]").textContent = fmtHalf(minH);
