@@ -353,6 +353,105 @@ window.addEventListener("drop", (e) => {
   reader.readAsText(file);
 });
 
+/* ============ WERKZEUGE (Dock + verschiebbare Fenster) ============ */
+const TOOLS = Array.isArray(window.VEG_TOOLS) ? window.VEG_TOOLS : [];
+const toolsDock = document.getElementById("toolsDock");
+const openWindows = {}; // id -> { el, cleanup }
+let winZ = 60;          // z-index-Zähler, damit angeklickte Fenster nach vorne kommen
+
+/* Für jedes Tool einen Knopf neben der Suche; ein Klick öffnet sein Fenster. */
+function buildDock() {
+  if (!toolsDock) return;
+  toolsDock.innerHTML = TOOLS.map((t, i) =>
+    `<button class="tool-dock-btn" data-tool="${i}" title="${escAttr(t.name || "Werkzeug")}"
+             aria-label="${escAttr(t.name || "Werkzeug")}"><i data-lucide="${escAttr(t.icon || "wrench")}"></i></button>`
+  ).join("");
+  toolsDock.querySelectorAll(".tool-dock-btn").forEach((btn) =>
+    btn.addEventListener("click", () => openToolWindow(TOOLS[+btn.dataset.tool])));
+  if (window.lucide) lucide.createIcons();
+}
+
+function focusWindow(el) { el.style.zIndex = ++winZ; }
+
+function openToolWindow(tool) {
+  if (!tool) return;
+  // Schon offen? Nur nach vorne holen.
+  if (openWindows[tool.id]) { focusWindow(openWindows[tool.id].el); return; }
+
+  const win = document.createElement("section");
+  win.className = "tool-window";
+  win.setAttribute("role", "dialog");
+  win.setAttribute("aria-label", tool.name || "Werkzeug");
+  if (tool.width) win.style.width = tool.width + "px";
+  if (tool.height) win.style.height = tool.height + "px";
+  win.innerHTML = `
+    <header class="tw-bar" data-drag>
+      <span class="tw-ico"><i data-lucide="${escAttr(tool.icon || "wrench")}"></i></span>
+      <span class="tw-title">${esc(tool.name || "Werkzeug")}</span>
+      <button class="tw-close" aria-label="Schließen"><i data-lucide="x"></i></button>
+    </header>
+    <div class="tw-body"></div>`;
+  document.body.appendChild(win);
+
+  // mittig-oben platzieren (innerhalb des sichtbaren Bereichs)
+  const w = win.offsetWidth, h = win.offsetHeight;
+  win.style.left = Math.max(8, (window.innerWidth - w) / 2) + "px";
+  win.style.top = Math.max(8, (window.innerHeight - h) / 3) + "px";
+
+  let cleanup = null;
+  const body = win.querySelector(".tw-body");
+  try { cleanup = tool.render(body) || null; }
+  catch { body.textContent = "Fehler beim Laden des Werkzeugs."; }
+  openWindows[tool.id] = { el: win, cleanup };
+
+  win.querySelector(".tw-close").addEventListener("click", () => closeToolWindow(tool.id));
+  win.addEventListener("pointerdown", () => focusWindow(win), true);
+  makeWindowDraggable(win, win.querySelector("[data-drag]"));
+  focusWindow(win);
+  if (window.lucide) lucide.createIcons();
+}
+
+function closeToolWindow(id) {
+  const rec = openWindows[id];
+  if (!rec) return;
+  if (typeof rec.cleanup === "function") { try { rec.cleanup(); } catch {} }
+  rec.el.remove();
+  delete openWindows[id];
+}
+
+/* Fenster an der Titelleiste mit Maus oder Finger frei verschieben. */
+function makeWindowDraggable(win, handle) {
+  let startX = 0, startY = 0, originX = 0, originY = 0, dragging = false;
+  handle.addEventListener("pointerdown", (e) => {
+    if (e.target.closest(".tw-close")) return; // Schließen-Knopf nicht zum Ziehen nutzen
+    dragging = true;
+    startX = e.clientX; startY = e.clientY;
+    const r = win.getBoundingClientRect();
+    originX = r.left; originY = r.top;
+    win.classList.add("dragging");
+    handle.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  handle.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    const maxX = Math.max(0, window.innerWidth - win.offsetWidth);
+    const maxY = Math.max(0, window.innerHeight - win.offsetHeight);
+    const nx = Math.min(Math.max(0, originX + e.clientX - startX), maxX);
+    const ny = Math.min(Math.max(0, originY + e.clientY - startY), maxY);
+    win.style.left = nx + "px";
+    win.style.top = ny + "px";
+  });
+  const end = (e) => {
+    if (!dragging) return;
+    dragging = false; win.classList.remove("dragging");
+    try { handle.releasePointerCapture(e.pointerId); } catch {}
+  };
+  handle.addEventListener("pointerup", end);
+  handle.addEventListener("pointercancel", end);
+}
+
+buildDock();
+
 /* ============ INIT ============ */
 render();
 if (window.lucide) lucide.createIcons();

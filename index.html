@@ -32,14 +32,19 @@
   <div id="sheets"></div>
   <div class="drop-veil">JSON hier ablegen</div>
 
-  <!-- Feste Suchleiste unten -->
-  <div class="searchbar hidden" id="searchbar">
-    <i data-lucide="search" class="search-ico"></i>
-    <input id="searchInput" type="search" placeholder="Suchen…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-    <button class="search-clear" id="searchClear" aria-label="Suche beenden"><i data-lucide="x"></i></button>
+  <!-- Feste Leiste unten: Suche + Werkzeug-Knöpfe teilen sich die Breite -->
+  <div class="bottombar" id="bottombar">
+    <div class="searchbar hidden" id="searchbar">
+      <i data-lucide="search" class="search-ico"></i>
+      <input id="searchInput" type="search" placeholder="Suchen…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+      <button class="search-clear" id="searchClear" aria-label="Suche beenden"><i data-lucide="x"></i></button>
+    </div>
+    <!-- Werkzeug-Knöpfe (ein Knopf pro Tool aus tools.js, von app.js erzeugt) -->
+    <div class="tools-dock" id="toolsDock"></div>
   </div>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <script src="./tools.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>
