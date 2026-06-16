@@ -380,8 +380,8 @@ function focusWindow(el) { el.style.zIndex = ++winZ; }
 
 function openToolWindow(tool) {
   if (!tool) return;
-  // Schon offen? Nur nach vorne holen.
-  if (openWindows[tool.id]) { focusWindow(openWindows[tool.id].el); return; }
+  // Schon offen? Erneutes Tippen auf den Knopf schließt das Werkzeug wieder.
+  if (openWindows[tool.id]) { closeToolWindow(tool.id); return; }
 
   // Das Werkzeug bestimmt selbst, wie es erscheint: als Bottom-Sheet (wie die
   // Ordner, Standard) oder als frei verschiebbares Fenster (display: "window").
