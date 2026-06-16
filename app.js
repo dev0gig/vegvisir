@@ -197,10 +197,14 @@ function closeSheet() {
   activeSheet = null;
   document.body.style.overflow = "";
 }
-backdrop.addEventListener("click", closeSheet);
+backdrop.addEventListener("click", () => {
+  if (activeSheet) closeSheet();
+  else if (sheetToolId) closeToolWindow(sheetToolId);
+});
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if (activeSheet) closeSheet();
+  else if (sheetToolId) closeToolWindow(sheetToolId);
   else if (query) resetSearch();
 });
 
@@ -358,6 +362,7 @@ const TOOLS = Array.isArray(window.VEG_TOOLS) ? window.VEG_TOOLS : [];
 const toolsDock = document.getElementById("toolsDock");
 const openWindows = {}; // id -> { el, cleanup }
 let winZ = 60;          // z-index-Zähler, damit angeklickte Fenster nach vorne kommen
+let sheetToolId = null; // id des Werkzeugs, das gerade als Bottom-Sheet offen ist
 
 /* Für jedes Tool einen Knopf neben der Suche; ein Klick öffnet sein Fenster. */
 function buildDock() {
@@ -378,13 +383,22 @@ function openToolWindow(tool) {
   // Schon offen? Nur nach vorne holen.
   if (openWindows[tool.id]) { focusWindow(openWindows[tool.id].el); return; }
 
+  // Auf sehr schmalen Bildschirmen erscheint das Werkzeug als Bottom-Sheet
+  // (wie die Ordner) statt als frei schwebendes Fenster.
+  const asSheet = window.matchMedia("(max-width: 560px)").matches;
+
   const win = document.createElement("section");
-  win.className = "tool-window";
+  win.className = "tool-window" + (asSheet ? " as-sheet" : "");
+  win.dataset.toolId = tool.id;
   win.setAttribute("role", "dialog");
+  win.setAttribute("aria-modal", asSheet ? "true" : "false");
   win.setAttribute("aria-label", tool.name || "Werkzeug");
-  if (tool.width) win.style.width = tool.width + "px";
-  if (tool.height) win.style.height = tool.height + "px";
+  if (!asSheet) {
+    if (tool.width) win.style.width = tool.width + "px";
+    if (tool.height) win.style.height = tool.height + "px";
+  }
   win.innerHTML = `
+    ${asSheet ? '<div class="tw-handle" data-handle></div>' : ""}
     <header class="tw-bar" data-drag>
       <span class="tw-ico"><i data-lucide="${escAttr(tool.icon || "wrench")}"></i></span>
       <span class="tw-title">${esc(tool.name || "Werkzeug")}</span>
@@ -393,10 +407,21 @@ function openToolWindow(tool) {
     <div class="tw-body"></div>`;
   document.body.appendChild(win);
 
-  // mittig-oben platzieren (innerhalb des sichtbaren Bereichs)
-  const w = win.offsetWidth, h = win.offsetHeight;
-  win.style.left = Math.max(8, (window.innerWidth - w) / 2) + "px";
-  win.style.top = Math.max(8, (window.innerHeight - h) / 3) + "px";
+  if (asSheet) {
+    // wie ein Ordner-Sheet: Hintergrund abdunkeln, von unten hereinfahren
+    sheetToolId = tool.id;
+    backdrop.classList.add("open");
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(() => {
+      win.classList.add("open");
+      win.style.transform = "translate(-50%, 0)";
+    });
+  } else {
+    // mittig-oben platzieren (innerhalb des sichtbaren Bereichs)
+    const w = win.offsetWidth, h = win.offsetHeight;
+    win.style.left = Math.max(8, (window.innerWidth - w) / 2) + "px";
+    win.style.top = Math.max(8, (window.innerHeight - h) / 3) + "px";
+  }
 
   const closeBtn = win.querySelector(".tw-close");
 
@@ -424,18 +449,63 @@ function openToolWindow(tool) {
   openWindows[tool.id] = { el: win, cleanup };
 
   closeBtn.addEventListener("click", () => closeToolWindow(tool.id));
-  win.addEventListener("pointerdown", () => focusWindow(win), true);
-  makeWindowDraggable(win, win.querySelector("[data-drag]"));
-  focusWindow(win);
+  if (asSheet) {
+    // Am Griff nach unten ziehen schließt das Sheet (wie bei den Ordnern).
+    attachToolSheetDrag(win, tool.id);
+  } else {
+    win.addEventListener("pointerdown", () => focusWindow(win), true);
+    makeWindowDraggable(win, win.querySelector("[data-drag]"));
+    focusWindow(win);
+  }
   if (window.lucide) lucide.createIcons();
 }
 
 function closeToolWindow(id) {
   const rec = openWindows[id];
   if (!rec) return;
-  if (typeof rec.cleanup === "function") { try { rec.cleanup(); } catch {} }
-  rec.el.remove();
   delete openWindows[id];
+  if (typeof rec.cleanup === "function") { try { rec.cleanup(); } catch {} }
+  const el = rec.el;
+  if (el.classList.contains("as-sheet")) {
+    // nach unten herausfahren, dann erst entfernen
+    if (sheetToolId === id) sheetToolId = null;
+    el.classList.remove("open");
+    el.style.transform = "";
+    if (!activeSheet && !sheetToolId) {
+      backdrop.classList.remove("open");
+      document.body.style.overflow = "";
+    }
+    el.addEventListener("transitionend", () => el.remove(), { once: true });
+    setTimeout(() => { if (el.isConnected) el.remove(); }, 500);
+  } else {
+    el.remove();
+  }
+}
+
+/* Werkzeug-Sheet am Griff nach unten wegziehen (Schließen ab ~110px). */
+function attachToolSheetDrag(win, id) {
+  const handle = win.querySelector("[data-handle]");
+  if (!handle) return;
+  let startY = 0, dy = 0, dragging = false;
+  handle.addEventListener("pointerdown", (e) => {
+    dragging = true; startY = e.clientY; dy = 0;
+    win.classList.add("dragging");
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    dy = Math.max(0, e.clientY - startY);
+    win.style.transform = `translate(-50%, ${dy}px)`;
+  });
+  const end = (e) => {
+    if (!dragging) return;
+    dragging = false; win.classList.remove("dragging");
+    try { handle.releasePointerCapture(e.pointerId); } catch {}
+    if (dy > 110) closeToolWindow(id);
+    else win.style.transform = "translate(-50%, 0)";
+  };
+  handle.addEventListener("pointerup", end);
+  handle.addEventListener("pointercancel", end);
 }
 
 /* Fenster an der Titelleiste mit Maus oder Finger frei verschieben. */
