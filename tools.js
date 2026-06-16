@@ -172,5 +172,248 @@ window.VEG_TOOLS = [
       setTimeout(() => root.focus(), 30);
       show();
     }
+  },
+
+  {
+    id: "arbeitszeit",
+    name: "Arbeitszeit",
+    icon: "clock",
+    width: 360,
+    height: 600,
+    render(container) {
+      const KEY = "vegvisir.tool.arbeitszeit";
+
+      container.innerHTML = `
+        <div class="wt">
+          <div class="wt-head">
+            <h2>Arbeitszeit</h2>
+            <span class="wt-date" data-date></span>
+          </div>
+
+          <div class="wt-card">
+            <div class="wt-goals">
+              <div class="wt-goal">
+                <label>Minimum</label>
+                <input type="range" data-min min="1" max="12" step="0.5" value="4">
+                <span class="wt-val" data-minval>4:00</span>
+              </div>
+              <div class="wt-goal">
+                <label>Maximum</label>
+                <input type="range" data-max min="1" max="12" step="0.5" value="8">
+                <span class="wt-val" data-maxval>8:00</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="wt-stats">
+            <div class="wt-stat"><div class="wt-stat-label">Netto</div><div class="wt-stat-value blue" data-worked>0:00</div></div>
+            <div class="wt-stat"><div class="wt-stat-label">Bis Minimum</div><div class="wt-stat-value amber" data-untilmin>—</div></div>
+            <div class="wt-stat"><div class="wt-stat-label">Bis Maximum</div><div class="wt-stat-value muted" data-untilmax>—</div></div>
+            <div class="wt-stat"><div class="wt-stat-label">Pause heute</div><div class="wt-stat-value muted" data-pause>0:00</div></div>
+          </div>
+
+          <div>
+            <div class="wt-progress-meta"><span>Fortschritt zum Maximum</span><b data-pct>0%</b></div>
+            <div class="wt-bar-bg"><div class="wt-bar-fill" data-fill style="width:0%"></div></div>
+          </div>
+
+          <div class="wt-endtimes">
+            <div class="wt-et"><div class="wt-et-label">Frühester Schluss</div><div class="wt-et-value green" data-etmin>—</div></div>
+            <div class="wt-et"><div class="wt-et-label">Spätester Schluss</div><div class="wt-et-value amber" data-etmax>—</div></div>
+            <div class="wt-et"><div class="wt-et-label">Beginn</div><div class="wt-et-value muted" data-etstart>—</div></div>
+          </div>
+
+          <div class="wt-card" data-startcard>
+            <div class="wt-card-title">Arbeitsbeginn eingeben</div>
+            <div class="wt-input-row">
+              <label>Start</label>
+              <input type="time" data-instart>
+              <button class="wt-btn primary" data-setstart>Bestätigen</button>
+            </div>
+            <div class="wt-err" data-starterr></div>
+          </div>
+
+          <div class="wt-card wt-hidden" data-pausecard>
+            <div class="wt-card-title">Pausen &amp; Unterbrechungen <span class="wt-pill active" data-pill>Aktiv</span></div>
+            <div data-pauseopen>
+              <div class="wt-input-row">
+                <label>Pause von</label>
+                <input type="time" data-pausefrom>
+                <button class="wt-btn primary" data-openpause>Pause starten</button>
+              </div>
+              <div class="wt-err" data-pauseerr></div>
+            </div>
+            <div class="wt-hidden" data-pauseclose>
+              <div class="wt-input-row">
+                <label>Pause bis</label>
+                <input type="time" data-pauseto>
+                <button class="wt-btn primary" data-closepause>Weiterarbeiten</button>
+              </div>
+              <div class="wt-err" data-pauseenderr></div>
+            </div>
+            <div class="wt-pauses" data-pauselist></div>
+          </div>
+
+          <div class="wt-footer">
+            <button class="wt-btn danger" data-reset>↺ Tag zurücksetzen</button>
+          </div>
+        </div>`;
+
+      const $ = (s) => container.querySelector(s);
+
+      // Zustand wird im Browser gespeichert (inkl. der Min/Max-Ziele).
+      let state = { start: null, pauses: [], openPause: null, minH: 4, maxH: 8 };
+      try { const s = localStorage.getItem(KEY); if (s) Object.assign(state, JSON.parse(s)); } catch {}
+      let minH = state.minH ?? 4, maxH = state.maxH ?? 8;
+      let ticker = null;
+
+      const save = () => {
+        state.minH = minH; state.maxH = maxH;
+        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
+      };
+
+      /* ---- kleine Zeit-Helfer (Millisekunden ↔ "H:MM") ---- */
+      const fmtMs = (ms) => { if (ms <= 0) return "0:00"; const m = Math.floor(ms / 60000); return Math.floor(m / 60) + ":" + String(m % 60).padStart(2, "0"); };
+      const fmtHalf = (v) => Math.floor(v) + ":" + (v % 1 === 0.5 ? "30" : "00");
+      const timeToMs = (t) => { const [h, m] = t.split(":").map(Number); return (h * 60 + m) * 60000; };
+      const msToTimeStr = (ms) => { if (ms < 0 || ms >= 86400000) return null; const m = Math.floor(ms / 60000); return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"); };
+      const nowMs = () => { const n = new Date(); return (n.getHours() * 60 + n.getMinutes()) * 60000; };
+      const nowTimeStr = () => { const n = new Date(); return String(n.getHours()).padStart(2, "0") + ":" + String(n.getMinutes()).padStart(2, "0"); };
+
+      const getPauseMs = () => state.pauses.reduce((a, p) => a + (timeToMs(p.to) - timeToMs(p.from)), 0);
+      const getNettoMs = (now) => {
+        if (!state.start) return 0;
+        const elapsed = now - timeToMs(state.start);
+        const openMs = state.openPause ? (now - timeToMs(state.openPause)) : 0;
+        return Math.max(0, elapsed - getPauseMs() - openMs);
+      };
+
+      function setStart() {
+        const v = $("[data-instart]").value;
+        if (!v) { $("[data-starterr]").textContent = "Bitte eine Uhrzeit eingeben."; return; }
+        if (timeToMs(v) > nowMs()) { $("[data-starterr]").textContent = "Startzeit kann nicht in der Zukunft liegen."; return; }
+        $("[data-starterr]").textContent = "";
+        state.start = v; save(); startTicker(); update();
+      }
+      function openPause() {
+        const v = $("[data-pausefrom]").value || nowTimeStr();
+        $("[data-pausefrom]").value = v;
+        if (timeToMs(v) < timeToMs(state.start)) { $("[data-pauseerr]").textContent = "Pause kann nicht vor dem Arbeitsbeginn liegen."; return; }
+        $("[data-pauseerr]").textContent = "";
+        state.openPause = v; $("[data-pauseto]").value = ""; save(); update();
+      }
+      function closePause() {
+        const v = $("[data-pauseto]").value || nowTimeStr();
+        $("[data-pauseto]").value = v;
+        if (!state.openPause) return;
+        if (timeToMs(v) <= timeToMs(state.openPause)) { $("[data-pauseenderr]").textContent = "Ende muss nach Beginn der Pause liegen."; return; }
+        $("[data-pauseenderr]").textContent = "";
+        state.pauses.push({ from: state.openPause, to: v }); state.openPause = null; save(); update();
+      }
+      function deletePause(i) { state.pauses.splice(i, 1); save(); update(); }
+      function resetDay() {
+        if (!confirm("Tag zurücksetzen?")) return;
+        state.start = null; state.pauses = []; state.openPause = null; save();
+        if (ticker) { clearInterval(ticker); ticker = null; }
+        update();
+      }
+      function startTicker() { if (ticker) return; ticker = setInterval(updateStats, 30000); }
+
+      // "update" zeigt/versteckt die Karten und rechnet alles neu.
+      function update() {
+        const hasStart = !!state.start;
+        $("[data-startcard]").classList.toggle("wt-hidden", hasStart);
+        $("[data-pausecard]").classList.toggle("wt-hidden", !hasStart);
+        if (hasStart) { updateStats(); renderPauses(); } else { resetStats(); }
+      }
+      function resetStats() {
+        ["[data-worked]", "[data-untilmin]", "[data-untilmax]", "[data-pause]", "[data-etmin]", "[data-etmax]", "[data-etstart]"]
+          .forEach((s) => { $(s).textContent = "—"; });
+        $("[data-fill]").style.width = "0%"; $("[data-pct]").textContent = "0%";
+      }
+      function updateStats() {
+        if (!state.start) return;
+        const now = nowMs();
+        const netto = getNettoMs(now);
+        const minMs = minH * 3600000, maxMs = maxH * 3600000;
+
+        $("[data-worked]").textContent = fmtMs(netto);
+
+        const pauseTotal = getPauseMs() + (state.openPause ? (now - timeToMs(state.openPause)) : 0);
+        $("[data-pause]").textContent = fmtMs(pauseTotal);
+
+        const remMin = minMs - netto;
+        const minEl = $("[data-untilmin]");
+        minEl.textContent = remMin <= 0 ? "✓" : fmtMs(remMin);
+        minEl.className = "wt-stat-value " + (remMin <= 0 ? "green" : "amber");
+
+        const remMax = maxMs - netto;
+        const maxEl = $("[data-untilmax]");
+        maxEl.textContent = remMax <= 0 ? "✓" : fmtMs(remMax);
+        maxEl.className = "wt-stat-value " + (remMax <= 0 ? "green" : "muted");
+
+        const pct = Math.min(100, Math.round((netto / maxMs) * 100));
+        $("[data-pct]").textContent = pct + "%";
+        const fill = $("[data-fill]");
+        fill.style.width = pct + "%";
+        fill.style.background = pct >= 100 ? "#6fd6a0" : (pct >= Math.round((minMs / maxMs) * 100) ? "#7fd6b0" : "var(--teal)");
+
+        const openMs = state.openPause ? (now - timeToMs(state.openPause)) : 0;
+        const etMinMs = now + Math.max(0, remMin) + openMs;
+        const etMaxMs = now + Math.max(0, remMax) + openMs;
+        $("[data-etmin]").textContent = remMin <= 0 ? "Erreicht" : (msToTimeStr(etMinMs) || ">24h") + " Uhr";
+        $("[data-etmax]").textContent = remMax <= 0 ? "Erreicht" : (msToTimeStr(etMaxMs) || ">24h") + " Uhr";
+        $("[data-etstart]").textContent = state.start + " Uhr";
+
+        const pill = $("[data-pill]");
+        if (netto >= maxMs) { pill.textContent = "Maximum erreicht"; pill.className = "wt-pill done"; }
+        else if (state.openPause) { pill.textContent = "Pause"; pill.className = "wt-pill pause"; }
+        else { pill.textContent = "Aktiv"; pill.className = "wt-pill active"; }
+
+        $("[data-pauseopen]").classList.toggle("wt-hidden", !!state.openPause);
+        $("[data-pauseclose]").classList.toggle("wt-hidden", !state.openPause);
+        if (!state.openPause) $("[data-pausefrom]").value = nowTimeStr();
+        if (state.openPause) $("[data-pauseto]").value = nowTimeStr();
+      }
+      function renderPauses() {
+        const list = $("[data-pauselist]");
+        let html = "";
+        state.pauses.forEach((p, i) => {
+          const dur = timeToMs(p.to) - timeToMs(p.from);
+          html += `<div class="wt-pause-item"><span class="wt-pause-times">${p.from} – ${p.to}<span class="wt-pause-dur">${fmtMs(dur)}</span></span><button class="wt-del" data-del="${i}" title="Löschen">×</button></div>`;
+        });
+        if (state.openPause) html += `<div class="wt-pause-item"><span class="wt-pause-times wt-pause-open">${state.openPause} – läuft…</span></div>`;
+        list.innerHTML = html;
+        list.querySelectorAll("[data-del]").forEach((b) => b.addEventListener("click", () => deletePause(+b.dataset.del)));
+      }
+
+      /* ---- Verdrahtung ---- */
+      $("[data-setstart]").addEventListener("click", setStart);
+      $("[data-openpause]").addEventListener("click", openPause);
+      $("[data-closepause]").addEventListener("click", closePause);
+      $("[data-reset]").addEventListener("click", resetDay);
+
+      const minSlider = $("[data-min]"), maxSlider = $("[data-max]");
+      minSlider.value = minH; $("[data-minval]").textContent = fmtHalf(minH);
+      maxSlider.value = maxH; $("[data-maxval]").textContent = fmtHalf(maxH);
+      minSlider.addEventListener("input", function () {
+        minH = Number(this.value); $("[data-minval]").textContent = fmtHalf(minH);
+        if (minH > maxH) { maxH = minH; maxSlider.value = maxH; $("[data-maxval]").textContent = fmtHalf(maxH); }
+        save(); updateStats();
+      });
+      maxSlider.addEventListener("input", function () {
+        maxH = Number(this.value); $("[data-maxval]").textContent = fmtHalf(maxH);
+        if (maxH < minH) { minH = maxH; minSlider.value = minH; $("[data-minval]").textContent = fmtHalf(minH); }
+        save(); updateStats();
+      });
+
+      $("[data-date]").textContent = new Date().toLocaleDateString("de-AT", { weekday: "long", day: "numeric", month: "long" });
+      $("[data-instart]").value = nowTimeStr();
+      if (state.start) startTicker();
+      update();
+
+      // Aufräumen: Timer stoppen, wenn das Fenster geschlossen wird.
+      return () => { if (ticker) clearInterval(ticker); };
+    }
   }
 ];
