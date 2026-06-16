@@ -564,22 +564,26 @@ body.dropping::after { background: rgba(111,214,207,0.06); }
 }
 .tool-window.as-sheet.dragging .tw-handle { cursor: grabbing; }
 
-/* Auf sehr schmalen Bildschirmen öffnen Werkzeuge als Bottom-Sheet —
-   genau wie die Ordner: von unten hereinfahrend, volle Breite, Griff zum
-   Wegziehen, abgedunkelter Hintergrund. (Auf breiteren Bildschirmen bleiben
-   sie frei schwebende Fenster.) */
-@media (max-width: 560px) {
+/* Werkzeuge mit display:"sheet" öffnen als Bottom-Sheet — genau wie die
+   Ordner: von unten hereinfahrend, volle Breite, Griff zum Wegziehen,
+   abgedunkelter Hintergrund. Gilt auf jeder Bildschirmbreite. */
+.tool-window.as-sheet {
+  top: auto; bottom: 0; left: 50%; right: auto;
+  width: min(720px, 100%);
+  height: auto; max-height: 86dvh;
+  transform: translate(-50%, 130%);
+  border-radius: 26px 26px 0 0; border-bottom: 0;
+  box-shadow: 0 -24px 60px -20px rgba(0,0,0,0.8);
+  transition: transform 0.42s var(--ease);
+}
+.tool-window.as-sheet.open { transform: translate(-50%, 0); }
+.tool-window.as-sheet.dragging { transition: none; }
+/* Auf breiten Bildschirmen leicht vom unteren Rand abheben (wie die Ordner). */
+@media (min-width: 720px) {
   .tool-window.as-sheet {
-    top: auto; bottom: 0; left: 50%; right: auto;
-    width: min(720px, 100%);
-    height: auto; max-height: 86dvh;
-    transform: translate(-50%, 130%);
-    border-radius: 26px 26px 0 0; border-bottom: 0;
-    box-shadow: 0 -24px 60px -20px rgba(0,0,0,0.8);
-    transition: transform 0.42s var(--ease);
+    bottom: clamp(12px, 4vh, 40px);
+    border-radius: 26px; border-bottom: 1px solid var(--glass-border);
   }
-  .tool-window.as-sheet.open { transform: translate(-50%, 0); }
-  .tool-window.as-sheet.dragging { transition: none; }
 }
 
 /* ============ RECHNER ============ */

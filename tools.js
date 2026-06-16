@@ -3,13 +3,17 @@
    Eigene kleine Werkzeuge für vegvisir. Jedes Tool ist ein Objekt:
 
      {
-       id:     "eindeutige-id",
-       name:   "Anzeigename",
-       icon:   "lucide-name",      // Icon-Name von https://lucide.dev/icons
-       width:  280,                // feste Fenstergröße in px (optional)
-       height: 400,
+       id:      "eindeutige-id",
+       name:    "Anzeigename",
+       icon:    "lucide-name",     // Icon-Name von https://lucide.dev/icons
+       display: "sheet",           // "sheet" = Bottom-Sheet wie die Ordner (Standard),
+                                    // "window" = frei verschiebbares Fenster
+       width:   280,               // feste Fenstergröße in px (nur bei "window")
+       height:  400,
        render(container) { ... }   // baut die Oberfläche in `container`
      }
+
+   Ohne `display` öffnet ein Werkzeug als Bottom-Sheet (auf jeder Bildschirmbreite).
 
    `render(container)` bekommt ein leeres <div> und füllt es mit der Tool-UI.
    Optional kannst du eine Aufräum-Funktion zurückgeben – sie wird aufgerufen,
@@ -24,6 +28,7 @@ window.VEG_TOOLS = [
     id: "rechner",
     name: "Rechner",
     icon: "calculator",
+    display: "window",   // Rechner bleibt ein frei verschiebbares Fenster (auch auf schmalen Bildschirmen)
     width: 280,
     height: 400,
     render(container) {
@@ -193,6 +198,7 @@ window.VEG_TOOLS = [
     id: "arbeitszeit",
     name: "Arbeitszeit",
     icon: "clock",
+    display: "sheet",    // Arbeitszeit immer als Bottom-Sheet (auf jeder Bildschirmbreite)
     width: 360,
     height: 720,
     render(container, api) {

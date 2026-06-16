@@ -383,9 +383,9 @@ function openToolWindow(tool) {
   // Schon offen? Nur nach vorne holen.
   if (openWindows[tool.id]) { focusWindow(openWindows[tool.id].el); return; }
 
-  // Auf sehr schmalen Bildschirmen erscheint das Werkzeug als Bottom-Sheet
-  // (wie die Ordner) statt als frei schwebendes Fenster.
-  const asSheet = window.matchMedia("(max-width: 560px)").matches;
+  // Das Werkzeug bestimmt selbst, wie es erscheint: als Bottom-Sheet (wie die
+  // Ordner, Standard) oder als frei verschiebbares Fenster (display: "window").
+  const asSheet = tool.display !== "window";
 
   const win = document.createElement("section");
   win.className = "tool-window" + (asSheet ? " as-sheet" : "");
