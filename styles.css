@@ -274,8 +274,9 @@ body::after {
 /* ============ BOTTOM SHEET ============ */
 .sheet-backdrop {
   position: fixed; inset: 0; z-index: 40;
-  background: rgba(4, 7, 14, 0.55);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  /* Nur abdunkeln, kein backdrop-blur: der Blur müsste während des ganzen
+     Einblendens neu berechnet werden und ruckelt; das Sheet liegt ohnehin darüber. */
+  background: rgba(4, 7, 14, 0.62);
   opacity: 0; visibility: hidden;
   transition: opacity 0.32s var(--ease), visibility 0s linear 0.32s;
 }
@@ -287,8 +288,9 @@ body::after {
   max-height: 86dvh;
   transform: translate(-50%, 130%);
   display: flex; flex-direction: column;
-  background: linear-gradient(180deg, rgba(20,28,48,0.92), rgba(10,15,28,0.96));
-  backdrop-filter: blur(22px) saturate(130%); -webkit-backdrop-filter: blur(22px) saturate(130%);
+  /* Fast deckender Verlauf statt teurem backdrop-blur: das Sheet wird per
+     transform animiert; ein mit-animierter Blur lässt die Bewegung ruckeln. */
+  background: linear-gradient(180deg, rgba(20,28,48,0.97), rgba(10,15,28,0.99));
   border: 1px solid var(--glass-border); border-bottom: 0;
   border-radius: 26px 26px 0 0;
   box-shadow: 0 -24px 60px -20px rgba(0,0,0,0.8);
@@ -510,8 +512,8 @@ body.dropping::after { background: rgba(111,214,207,0.06); }
 .tool-window {
   position: fixed; z-index: 60; top: 80px; left: 50%;
   display: flex; flex-direction: column;
-  background: linear-gradient(180deg, rgba(20,28,48,0.96), rgba(10,15,28,0.98));
-  backdrop-filter: blur(22px) saturate(130%); -webkit-backdrop-filter: blur(22px) saturate(130%);
+  /* Fast deckender Verlauf statt teurem backdrop-blur (siehe .sheet). */
+  background: linear-gradient(180deg, rgba(20,28,48,0.98), rgba(10,15,28,0.99));
   border: 1px solid var(--glass-border);
   border-radius: 18px;
   box-shadow: var(--shadow);
