@@ -36,6 +36,8 @@ export function initSearch() {
     e.preventDefault();
     window.open("https://duckduckgo.com/?q=" + encodeURIComponent(q),
                 "_blank", "noopener,noreferrer");
+    // Wie beim Klick auf eine App: nach dem Start der Web-Suche das Suchfeld leeren.
+    resetSearch();
   });
   document.getElementById("searchClear").addEventListener("click", () => {
     resetSearch();
