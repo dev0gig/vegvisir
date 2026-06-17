@@ -705,6 +705,15 @@ body.dropping::after { background: rgba(111,214,207,0.06); }
 
 .wt-footer { display: flex; justify-content: flex-end; }
 .wt-hidden { display: none !important; }
+
+/* ============ FAVORITEN-WERKZEUG (Stern) ============ */
+.fav-section { padding-top: 6px; }
+.fav-section + .fav-section { border-top: 1px solid var(--glass-border); margin-top: 4px; }
+.fav-title { display: block; padding: 14px clamp(14px, 4vw, 28px) 2px; }
+.fav-empty {
+  padding: 4px clamp(14px, 4vw, 28px) 18px;
+  color: var(--steel-500); font-size: 0.85rem; line-height: 1.55; max-width: 38ch;
+}
 .drop-veil {
   position: fixed; inset: 0; z-index: 60; display: none;
   place-items: center; pointer-events: none;
