@@ -10,6 +10,7 @@ import { getQuery } from "./search.js";
 import { pickFile } from "./import.js";
 
 const homeGrid = document.getElementById("homeGrid");
+const homeFav = document.getElementById("homeFav");
 const sheetsRoot = document.getElementById("sheets");
 const searchbar = document.getElementById("searchbar");
 
@@ -24,6 +25,7 @@ export function render() {
 
   if (empty) {
     sheetsRoot.innerHTML = "";
+    homeFav.innerHTML = "";
     homeGrid.innerHTML = `
       <div class="empty-home">
         <i data-lucide="compass" class="eh-ico"></i>
@@ -41,6 +43,7 @@ export function render() {
   if (q) {
     // Suchmodus: flache, gefilterte Trefferliste, keine Ordner.
     sheetsRoot.innerHTML = "";
+    homeFav.innerHTML = "";
     const hits = allBookmarks(data).filter((bm) => matchesQuery(bm, q));
     homeGrid.innerHTML = hits.length
       ? hits.map(tileHTML).join("")
@@ -50,7 +53,14 @@ export function render() {
     return;
   }
 
-  // Normalansicht: Ordner zuerst, dann lose Bookmarks.
+  // Normalansicht: Favoriten ganz oben (Schnellzugriff), darunter Ordner +
+  // lose Bookmarks. Favoriten sind die in Toride mit dem Stern markierten
+  // Bookmarks (Feld `isFavorite`), egal ob sie sonst in einem Ordner stecken.
+  const favorites = allBookmarks(data).filter((bm) => bm.isFavorite);
+  homeFav.innerHTML = favorites.length
+    ? `<h3 class="sheet-sub home-fav-title">Favoriten</h3><div class="home-grid">${favorites.map(tileHTML).join("")}</div>`
+    : "";
+
   homeGrid.innerHTML = folders.map(folderTileHTML).join("") + roots.map(tileHTML).join("");
   sheetsRoot.innerHTML = folders.map(sheetHTML).join("");
 

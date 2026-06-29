@@ -6,7 +6,6 @@ import { getActiveSheet, closeSheet } from "./sheet.js";
 import { getQuery, resetSearch, initSearch } from "./search.js";
 import { initImport } from "./import.js";
 import { buildDock, getSheetToolId, closeToolWindow } from "./toolwindows.js";
-import { initFavorites } from "./favorites.js";
 import { render } from "./render.js";
 
 const backdrop = document.getElementById("backdrop");
@@ -29,7 +28,6 @@ document.addEventListener("keydown", (e) => {
 /* Ereignisse anhängen und App aufbauen. */
 initSearch();
 initImport();
-initFavorites();   // muss vor buildDock() laufen: registriert den Favoriten-Knopf
 buildDock();
 render();
 if (window.lucide) lucide.createIcons();
