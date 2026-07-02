@@ -57,10 +57,9 @@
       <input id="searchInput" type="search" placeholder="Suchen…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
       <button class="search-clear" id="searchClear" aria-label="Suche beenden"><i data-lucide="x"></i></button>
     </div>
-    <!-- Werkzeug-Knöpfe (ein Knopf pro Tool aus tools.js, von app.js erzeugt) -->
+    <!-- Ein einziger Menü-Knopf: öffnet ein kleines Menü mit allen Werkzeugen
+         (aus tools.js) und dem Abmelden-Eintrag. Aufgebaut in toolwindows.js. -->
     <div class="tools-dock" id="toolsDock"></div>
-    <!-- Abmelden -->
-    <button class="tool-dock-btn" id="logoutBtn" title="Abmelden" aria-label="Abmelden"><i data-lucide="log-out"></i></button>
   </div>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>

@@ -20,7 +20,6 @@ let currentUser = null;
 const gate = document.getElementById("authGate");
 const msg = document.getElementById("authMsg");
 const loginBtn = document.getElementById("loginGithub");
-const logoutBtn = document.getElementById("logoutBtn");
 
 /* Für data.js: der Client und der angemeldete Benutzer (oder null). */
 export function getSupabase() { return client; }
@@ -86,7 +85,6 @@ async function handleSession(session, onAuthed) {
    Aufrufer (main.js) selbst für einen einmaligen App-Start. */
 export async function initAuth(onAuthed) {
   if (loginBtn) loginBtn.addEventListener("click", loginWithGitHub);
-  if (logoutBtn) logoutBtn.addEventListener("click", logout);
 
   if (!client) { showGate("Supabase ist nicht konfiguriert (siehe js/config.js)."); return; }
 

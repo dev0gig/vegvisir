@@ -531,8 +531,37 @@ body.dropping::after { background: rgba(111,214,207,0.06); }
   transition: color .25s var(--ease), border-color .25s var(--ease), transform .2s var(--ease);
 }
 .tool-dock-btn:hover { color: var(--teal); border-color: rgba(111,214,207,0.45); transform: translateY(-2px); }
+.tool-dock-btn.active { color: var(--teal); border-color: rgba(111,214,207,0.45); }
 .tool-dock-btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
 .tool-dock-btn i, .tool-dock-btn svg { width: 22px; height: 22px; }
+
+/* Kleines Menü, das der eine Dock-Knopf öffnet (Werkzeuge + Abmelden). */
+.tools-dock { position: relative; }
+.dock-menu {
+  position: absolute; right: 0; bottom: calc(100% + 10px);
+  min-width: 180px; padding: 6px;
+  display: flex; flex-direction: column; gap: 2px;
+  border-radius: 16px;
+  background: rgba(16, 24, 42, 0.82);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 18px 50px -18px rgba(0, 0, 0, 0.9);
+  z-index: 40;
+}
+.dock-menu[hidden] { display: none; }
+.dock-menu-item {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 10px 12px;
+  border: 0; border-radius: 10px; background: none;
+  color: var(--steel-200); font: inherit; font-size: 0.92rem; text-align: left;
+  cursor: pointer;
+  transition: color .2s var(--ease), background .2s var(--ease);
+}
+.dock-menu-item:hover { color: var(--steel-100); background: rgba(160,185,230,0.1); }
+.dock-menu-item:focus-visible { outline: 2px solid var(--teal); outline-offset: -2px; }
+.dock-menu-item i, .dock-menu-item svg { width: 18px; height: 18px; flex: none; }
+.dock-menu-sep { height: 1px; margin: 4px 6px; background: var(--glass-border); }
 
 /* ============ TOOL-FENSTER (frei verschiebbar, feste Größe) ============ */
 .tool-window {

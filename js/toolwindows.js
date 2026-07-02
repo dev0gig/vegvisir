@@ -5,6 +5,7 @@
 
 import { esc, escAttr } from "./dom.js";
 import { getActiveSheet } from "./sheet.js";
+import { logout } from "./auth.js";
 
 const backdrop = document.getElementById("backdrop");
 const toolsDock = document.getElementById("toolsDock");
@@ -17,15 +18,49 @@ let sheetToolId = null; // id des Werkzeugs, das gerade als Bottom-Sheet offen i
 /* Damit andere Module wissen, ob gerade ein Werkzeug-Sheet offen ist. */
 export function getSheetToolId() { return sheetToolId; }
 
-/* Für jedes Tool einen Knopf neben der Suche; ein Klick öffnet sein Fenster. */
+/* Ein einziger Knopf neben der Suche öffnet ein kleines Menü mit allen
+   Werkzeugen (aus tools.js) und dem Abmelden-Eintrag. */
 export function buildDock() {
   if (!toolsDock) return;
-  toolsDock.innerHTML = TOOLS.map((t, i) =>
-    `<button class="tool-dock-btn" data-tool="${i}" title="${escAttr(t.name || "Werkzeug")}"
-             aria-label="${escAttr(t.name || "Werkzeug")}"><i data-lucide="${escAttr(t.icon || "wrench")}"></i></button>`
-  ).join("");
-  toolsDock.querySelectorAll(".tool-dock-btn").forEach((btn) =>
-    btn.addEventListener("click", () => openToolWindow(TOOLS[+btn.dataset.tool])));
+  const toolItems = TOOLS.map((t, i) =>
+    `<button class="dock-menu-item" role="menuitem" data-tool="${i}">
+       <i data-lucide="${escAttr(t.icon || "wrench")}"></i><span>${esc(t.name || "Werkzeug")}</span>
+     </button>`).join("");
+  toolsDock.innerHTML = `
+    <button class="tool-dock-btn" id="dockMenuBtn" title="Menü" aria-label="Menü"
+            aria-haspopup="true" aria-expanded="false"><i data-lucide="menu"></i></button>
+    <div class="dock-menu" id="dockMenu" role="menu" hidden>
+      ${toolItems}
+      ${TOOLS.length ? '<div class="dock-menu-sep"></div>' : ""}
+      <button class="dock-menu-item" role="menuitem" data-action="logout">
+        <i data-lucide="log-out"></i><span>Abmelden</span>
+      </button>
+    </div>`;
+
+  const btn = toolsDock.querySelector("#dockMenuBtn");
+  const menu = toolsDock.querySelector("#dockMenu");
+  const setOpen = (open) => {
+    menu.hidden = !open;
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    btn.classList.toggle("active", open);
+  };
+
+  btn.addEventListener("click", (e) => { e.stopPropagation(); setOpen(menu.hidden); });
+  menu.querySelectorAll(".dock-menu-item").forEach((item) =>
+    item.addEventListener("click", () => {
+      setOpen(false);
+      if (item.dataset.action === "logout") logout();
+      else openToolWindow(TOOLS[+item.dataset.tool]);
+    }));
+
+  // Klick außerhalb oder Escape schließt das Menü wieder.
+  document.addEventListener("click", (e) => {
+    if (!menu.hidden && !toolsDock.contains(e.target)) setOpen(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !menu.hidden) setOpen(false);
+  });
+
   if (window.lucide) lucide.createIcons();
 }
 
