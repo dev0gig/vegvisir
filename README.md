@@ -11,8 +11,9 @@ befüllt ausschließlich per JSON-Import.
 - **Icons:** Bild aus dem Import als Cover-Icon, sonst Monogramm-Platzhalter.
 - **Installierbar (PWA)** ohne Service-Worker.
 - **Login + Cloud-Sync (Supabase):** Vor der App steht ein Login-Gate
-  („Mit GitHub anmelden"). Nur die in `ALLOWED_EMAIL` hinterlegte E-Mail
-  bekommt Zugriff, sonst sofortiger Logout mit „Kein Zugriff". Jeder JSON-Import
+  („Mit GitHub anmelden"). Nur das in `ALLOWED_GITHUB_LOGIN` hinterlegte
+  GitHub-Konto bekommt Zugriff, sonst sofortiger Logout mit „Kein Zugriff".
+  (Prüfung über den GitHub-Benutzernamen, nicht die E-Mail.) Jeder JSON-Import
   wird zusätzlich in die Supabase-Tabelle `vegvisir_data` gespiegelt; beim Start
   rendert die App zuerst den lokalen `localStorage`-Stand und holt danach im
   Hintergrund eine ggf. neuere Cloud-Version.
@@ -20,12 +21,13 @@ befüllt ausschließlich per JSON-Import.
 ## Konfiguration (Supabase)
 
 Die Zugangsdaten stehen in **`js/config.js`** (`SUPABASE_URL`,
-`SUPABASE_ANON_KEY`, `ALLOWED_EMAIL`). Diese Werte dürfen öffentlich sein: Der
-Anon-Key ist ein Browser-Schlüssel und wird durch Supabase-RLS + die
-`ALLOWED_EMAIL`-Prüfung abgesichert — es sind **keine** Geheimnisse.
+`SUPABASE_ANON_KEY`, `ALLOWED_GITHUB_LOGIN`). Diese Werte dürfen öffentlich sein:
+Der Anon-Key ist ein Browser-Schlüssel und wird durch Supabase-RLS + die
+`ALLOWED_GITHUB_LOGIN`-Prüfung abgesichert — es sind **keine** Geheimnisse.
 
-- **`ALLOWED_EMAIL`** muss exakt der E-Mail entsprechen, die GitHub bei der
-  Anmeldung zurückliefert (die primäre GitHub-E-Mail).
+- **`ALLOWED_GITHUB_LOGIN`** ist der zugelassene GitHub-Benutzername (klein
+  geschrieben). Die Prüfung läuft über den Benutzernamen, nicht die E-Mail —
+  daher unabhängig von privaten E-Mail-Einstellungen.
 - In Supabase muss der **GitHub-OAuth-Provider aktiv** sein, und die Callback-URL
   bei GitHub/Supabase muss auf die Deploy-Domain zeigen.
 
@@ -39,8 +41,8 @@ Build-Step vor dem Laden von `config.js` in `window.VEGVISIR_CONFIG` schreiben
 
 | Env Var              | Beispiel / Bedeutung                          |
 | -------------------- | --------------------------------------------- |
-| `SUPABASE_URL`       | `https://<projekt>.supabase.co`               |
-| `SUPABASE_ANON_KEY`  | öffentlicher Anon-Key des Supabase-Projekts   |
-| `ALLOWED_EMAIL`      | die einzige zugelassene Login-E-Mail          |
+| `SUPABASE_URL`          | `https://<projekt>.supabase.co`             |
+| `SUPABASE_ANON_KEY`     | öffentlicher Anon-Key des Supabase-Projekts |
+| `ALLOWED_GITHUB_LOGIN`  | der einzige zugelassene GitHub-Benutzername  |
 
 Ohne solchen Build-Step gelten schlicht die Vorgaben aus `js/config.js`.

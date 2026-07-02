@@ -8,7 +8,7 @@
  * Supabase-Client aus dem per CDN geladenen globalen `supabase`-Objekt. */
 
 const CFG = window.VEGVISIR_CONFIG || {};
-const ALLOWED = String(CFG.ALLOWED_EMAIL || "").trim().toLowerCase();
+const ALLOWED_LOGIN = String(CFG.ALLOWED_GITHUB_LOGIN || "").trim().toLowerCase();
 
 const client =
   window.supabase && CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY
@@ -47,7 +47,6 @@ async function loginWithGitHub() {
       options: {
         // Nach dem GitHub-Umweg exakt hierher zurück (ohne Query/Hash-Reste).
         redirectTo: window.location.origin + window.location.pathname,
-        scopes: "user:email",
       },
     });
   } catch {
@@ -65,8 +64,11 @@ async function handleSession(session, onAuthed) {
   const user = session && session.user;
   if (!user) { showGate(); return; }
 
-  const email = String(user.email || "").trim().toLowerCase();
-  if (!ALLOWED || email !== ALLOWED) {
+  // Zugriff nur für das erlaubte GitHub-Konto (Benutzername, unabhängig von
+  // der E-Mail). GitHub liefert den Namen in den user_metadata mit.
+  const meta = user.user_metadata || {};
+  const login = String(meta.user_name || meta.preferred_username || "").trim().toLowerCase();
+  if (!ALLOWED_LOGIN || login !== ALLOWED_LOGIN) {
     // Falsches Konto: sofort abmelden, Gate mit Fehlermeldung zeigen.
     try { await client.auth.signOut(); } catch {}
     showGate("Kein Zugriff.");

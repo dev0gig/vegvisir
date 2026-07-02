@@ -17,7 +17,8 @@ window.VEGVISIR_CONFIG = window.VEGVISIR_CONFIG || {
   SUPABASE_ANON_KEY:
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp2amVyZGxicGpyanZta3VtaG92Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI5NTUwNTcsImV4cCI6MjA5ODUzMTA1N30.asgS_YoHpt7xRnUYHolgKWxgzFcOHx3Gm5-Iw5KIj8Q",
 
-  /* NUR diese E-Mail bekommt Zugriff. Muss exakt der E-Mail entsprechen, die
-     GitHub bei der Anmeldung zurückliefert (die primäre GitHub-E-Mail). */
-  ALLOWED_EMAIL: "biosgiga@gmail.com",
+  /* NUR dieses GitHub-Konto bekommt Zugriff — dein GitHub-Benutzername (klein
+     geschrieben). Das ist robuster als die E-Mail: Der Benutzername kommt bei
+     der GitHub-Anmeldung immer mit, egal ob die E-Mail privat ist. */
+  ALLOWED_GITHUB_LOGIN: "dev0gig",
 };
