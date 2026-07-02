@@ -271,6 +271,29 @@ body::after {
 .btn-import:hover { filter: brightness(1.06); transform: translateY(-1px); }
 .btn-import i { width: 18px; height: 18px; }
 
+/* ============ LOGIN-GATE (Supabase-Auth) ============ */
+.auth-gate {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(1100px 560px at 50% -12%, rgba(111, 214, 207, 0.06), transparent 60%),
+    linear-gradient(180deg, var(--ink-900), var(--ink-950) 60%);
+}
+.auth-gate[hidden] { display: none; }
+.auth-card {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  max-width: 360px; text-align: center;
+}
+.auth-ico { width: 56px; height: 56px; color: var(--gold); }
+.auth-title {
+  font-family: "Cinzel", ui-serif, Georgia, serif; font-weight: 600;
+  font-size: 1.9rem; letter-spacing: 0.03em; color: var(--steel-100);
+}
+.auth-sub { margin: -8px 0 6px; color: var(--steel-400); }
+.auth-msg { min-height: 1.2em; font-size: 0.9rem; color: #e79a9a; }
+.auth-msg:empty { min-height: 0; }
+
 /* ============ BOTTOM SHEET ============ */
 .sheet-backdrop {
   position: fixed; inset: 0; z-index: 40;

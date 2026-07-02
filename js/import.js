@@ -3,7 +3,7 @@
    localStorage geleert werden. Eine JSON-Datei kann per Knopf gewählt oder
    einfach auf die Seite gezogen werden. */
 
-import { saveData, isEmptyData } from "./data.js";
+import { saveData, isEmptyData, pushToSupabase } from "./data.js";
 import { closeSheet } from "./sheet.js";
 import { render } from "./render.js";
 
@@ -18,7 +18,10 @@ function ingestJson(text) {
   const folders = Array.isArray(data.folders) ? data.folders : [];
   const bookmarks = Array.isArray(data.bookmarks) ? data.bookmarks : [];
   if (folders.length === 0 && bookmarks.length === 0) return false;
-  saveData({ version: 1, importedAt: new Date().toISOString(), folders, bookmarks });
+  const payload = { version: 1, importedAt: new Date().toISOString(), folders, bookmarks };
+  saveData(payload);
+  // Auch in die Cloud spiegeln (im Hintergrund, fehlertolerant).
+  pushToSupabase(payload);
   closeSheet();
   render();
   return true;
