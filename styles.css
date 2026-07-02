@@ -548,8 +548,31 @@ body.dropping::after { background: rgba(111,214,207,0.06); }
   border: 1px solid var(--glass-border);
   box-shadow: 0 18px 50px -18px rgba(0, 0, 0, 0.9);
   z-index: 40;
+  /* Geschlossen: unsichtbar, leicht nach unten versetzt + geschrumpft. Am Knopf
+     verankert (unten rechts), damit es visuell aus dem Knopf herauswächst. */
+  transform-origin: bottom right;
+  opacity: 0;
+  transform: translateY(8px) scale(0.96);
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .2s var(--ease), transform .2s var(--ease), visibility 0s linear .2s;
 }
-.dock-menu[hidden] { display: none; }
+.dock-menu.open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity .22s var(--ease), transform .22s var(--ease);
+}
+/* Die Einträge laufen beim Öffnen kurz nacheinander sanft ein. */
+.dock-menu.open .dock-menu-item { animation: dock-item-in .28s var(--ease) both; }
+.dock-menu.open .dock-menu-item:nth-child(2) { animation-delay: .04s; }
+.dock-menu.open .dock-menu-item:nth-child(3) { animation-delay: .08s; }
+.dock-menu.open .dock-menu-item:nth-child(4) { animation-delay: .12s; }
+@keyframes dock-item-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 .dock-menu-item {
   display: flex; align-items: center; gap: 12px;
   width: 100%; padding: 10px 12px;

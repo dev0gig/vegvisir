@@ -29,7 +29,7 @@ export function buildDock() {
   toolsDock.innerHTML = `
     <button class="tool-dock-btn" id="dockMenuBtn" title="Menü" aria-label="Menü"
             aria-haspopup="true" aria-expanded="false"><i data-lucide="menu"></i></button>
-    <div class="dock-menu" id="dockMenu" role="menu" hidden>
+    <div class="dock-menu" id="dockMenu" role="menu">
       ${toolItems}
       ${TOOLS.length ? '<div class="dock-menu-sep"></div>' : ""}
       <button class="dock-menu-item" role="menuitem" data-action="logout">
@@ -39,13 +39,16 @@ export function buildDock() {
 
   const btn = toolsDock.querySelector("#dockMenuBtn");
   const menu = toolsDock.querySelector("#dockMenu");
+  // Sichtbarkeit über die .open-Klasse (nicht das hidden-Attribut), damit das
+  // Ein-/Ausblenden per CSS sanft animiert werden kann.
+  const isOpen = () => menu.classList.contains("open");
   const setOpen = (open) => {
-    menu.hidden = !open;
+    menu.classList.toggle("open", open);
     btn.setAttribute("aria-expanded", open ? "true" : "false");
     btn.classList.toggle("active", open);
   };
 
-  btn.addEventListener("click", (e) => { e.stopPropagation(); setOpen(menu.hidden); });
+  btn.addEventListener("click", (e) => { e.stopPropagation(); setOpen(!isOpen()); });
   menu.querySelectorAll(".dock-menu-item").forEach((item) =>
     item.addEventListener("click", () => {
       setOpen(false);
@@ -55,10 +58,10 @@ export function buildDock() {
 
   // Klick außerhalb oder Escape schließt das Menü wieder.
   document.addEventListener("click", (e) => {
-    if (!menu.hidden && !toolsDock.contains(e.target)) setOpen(false);
+    if (isOpen() && !toolsDock.contains(e.target)) setOpen(false);
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !menu.hidden) setOpen(false);
+    if (e.key === "Escape" && isOpen()) setOpen(false);
   });
 
   if (window.lucide) lucide.createIcons();
