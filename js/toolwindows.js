@@ -56,6 +56,20 @@ export function buildDock() {
       else openToolWindow(TOOLS[+item.dataset.tool]);
     }));
 
+  // Auf Geräten mit echtem Zeiger (Maus) öffnet sich das Menü schon beim
+  // Überfahren des Knopfes. Eine kleine Schließ-Verzögerung überbrückt die
+  // 10px-Lücke zwischen Knopf und Menü, damit es beim Rüberfahren nicht
+  // flackert. Touch-Geräte (kein Hover) nutzen weiterhin den Klick.
+  if (window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    let closeTimer = null;
+    const cancelClose = () => { if (closeTimer) { clearTimeout(closeTimer); closeTimer = null; } };
+    toolsDock.addEventListener("mouseenter", () => { cancelClose(); setOpen(true); });
+    toolsDock.addEventListener("mouseleave", () => {
+      cancelClose();
+      closeTimer = setTimeout(() => setOpen(false), 160);
+    });
+  }
+
   // Klick außerhalb oder Escape schließt das Menü wieder.
   document.addEventListener("click", (e) => {
     if (isOpen() && !toolsDock.contains(e.target)) setOpen(false);
