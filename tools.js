@@ -436,5 +436,22 @@ window.VEG_TOOLS = [
       // Aufräumen: Timer stoppen, wenn das Fenster geschlossen wird.
       return () => { if (ticker) clearInterval(ticker); };
     }
+  },
+
+  {
+    id: "dienstplan",
+    name: "Dienstplan",
+    icon: "calendar-days",
+    display: "sheet",
+    render(container, api) {
+      // Die eigentliche UI lebt als ES-Modul in js/dienstplan.js (braucht die
+      // Supabase-Anmeldung aus auth.js). Hier nur dynamisch nachladen.
+      let cleanup = null;
+      container.innerHTML = '<div class="dp-loading">Lade Dienstplan…</div>';
+      import("./js/dienstplan.js")
+        .then((m) => { cleanup = m.renderDienstplan(container, api) || null; })
+        .catch(() => { container.innerHTML = '<div class="dp-loading">Dienstplan konnte nicht geladen werden.</div>'; });
+      return () => { if (typeof cleanup === "function") cleanup(); };
+    }
   }
 ];

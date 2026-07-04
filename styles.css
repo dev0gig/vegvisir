@@ -809,6 +809,101 @@ body.dropping::after { background: rgba(111,214,207,0.06); }
 }
 body.dropping .drop-veil { display: grid; }
 
+/* ============ DIENSTPLAN ============ */
+/* Der Kalender braucht mehr Breite als die übrigen Sheets (Monatsraster
+   mit 5 Spalten) — auf dem Handy weiterhin volle Breite. */
+.tool-window.as-sheet[data-tool-id="dienstplan"] { width: min(980px, 100%); }
+
+.dp { display: flex; flex-direction: column; gap: 12px; padding: 14px; }
+
+.dp-toolbar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.dp-nav { display: flex; gap: 6px; }
+.dp-btn {
+  display: grid; place-items: center; min-width: 34px; height: 34px;
+  padding: 0 10px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--glass-border); background: var(--glass);
+  color: var(--steel-300); font: inherit; font-size: 0.85rem;
+}
+.dp-btn:hover { color: var(--steel-100); background: var(--glass-hi); }
+.dp-btn i, .dp-btn svg { width: 16px; height: 16px; }
+.dp-range {
+  flex: 1 1 auto; min-width: 0; text-align: center;
+  font-family: "Cinzel", serif; font-weight: 600; letter-spacing: 0.03em;
+  font-size: 0.95rem; color: var(--steel-100);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dp-switch {
+  display: flex; padding: 3px; border-radius: 12px;
+  border: 1px solid var(--glass-border); background: var(--glass);
+}
+.dp-sw {
+  padding: 5px 12px; border: 0; border-radius: 9px; cursor: pointer;
+  background: transparent; color: var(--steel-400); font: inherit; font-size: 0.85rem;
+}
+.dp-sw.active { background: rgba(111,214,207,0.14); color: var(--teal); }
+
+.dp-msg {
+  padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.85rem;
+  border: 1px solid var(--glass-border); background: var(--glass); color: var(--steel-300);
+}
+.dp-msg.ok { color: #7fd6b0; border-color: rgba(127,214,176,0.35); background: rgba(127,214,176,0.08); }
+.dp-msg.warn { color: #e0b98a; border-color: rgba(224,185,138,0.35); background: rgba(224,185,138,0.08); }
+
+.dp-loading { padding: 28px 14px; text-align: center; color: var(--steel-400); font-size: 0.9rem; }
+
+/* Termin-Block (in beiden Ansichten gleich) */
+.dp-ev {
+  display: flex; flex-direction: column; gap: 1px;
+  margin-top: 6px; padding: 6px 8px; border-radius: 9px;
+  background: rgba(111,214,207,0.09);
+  border: 1px solid rgba(111,214,207,0.18);
+  border-left: 3px solid var(--teal-dim);
+  font-size: 0.8rem; min-width: 0;
+}
+.dp-ev-zeit { color: var(--teal); font-variant-numeric: tabular-nums; font-weight: 600; font-size: 0.75rem; }
+.dp-ev-titel { color: var(--steel-100); overflow: hidden; text-overflow: ellipsis; }
+
+/* Wochenansicht: fünf Tageskarten untereinander */
+.dp-week { display: flex; flex-direction: column; gap: 8px; }
+.dp-day {
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border); background: var(--glass);
+}
+.dp-day.today { border-color: rgba(205,178,126,0.45); background: rgba(205,178,126,0.06); }
+.dp-day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.dp-day-name { font-weight: 600; font-size: 0.9rem; color: var(--steel-100); }
+.dp-day.today .dp-day-name { color: var(--gold); }
+.dp-day-date { color: var(--steel-400); font-size: 0.8rem; }
+.dp-frei { margin-top: 4px; color: var(--steel-500); font-size: 0.8rem; }
+
+/* Monatsansicht: Raster Mo–Fr */
+.dp-month { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.dp-m-head {
+  text-align: center; padding: 2px 0 4px;
+  color: var(--steel-400); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em;
+}
+.dp-m-cell {
+  min-height: 74px; padding: 6px; border-radius: 10px; min-width: 0;
+  border: 1px solid var(--steel-line); background: var(--glass);
+}
+.dp-m-cell.out { border-color: transparent; background: transparent; }
+.dp-m-cell.today { border-color: rgba(205,178,126,0.45); background: rgba(205,178,126,0.06); }
+.dp-m-num { font-size: 0.78rem; font-weight: 600; color: var(--steel-400); }
+.dp-m-cell.today .dp-m-num { color: var(--gold); }
+.dp-m-cell .dp-ev { margin-top: 4px; padding: 3px 5px; border-radius: 7px; }
+.dp-m-cell .dp-ev-zeit { font-size: 0.68rem; }
+.dp-m-cell .dp-ev-titel { font-size: 0.7rem; white-space: nowrap; }
+
+/* Schmale Bildschirme (Fold gefaltet): Monatszellen kompakter, Titel weglassen —
+   die Zeit bleibt sichtbar, Details stehen in der Wochenansicht. */
+@media (max-width: 560px) {
+  .dp-m-cell { min-height: 56px; padding: 4px; }
+  .dp-m-cell .dp-ev-titel { display: none; }
+  .dp-range { order: 3; flex-basis: 100%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition-duration: 0.01ms !important; }
 }
