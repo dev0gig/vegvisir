@@ -14,6 +14,13 @@ const homeFav = document.getElementById("homeFav");
 const sheetsRoot = document.getElementById("sheets");
 const searchbar = document.getElementById("searchbar");
 
+/* Alphabetisch nach Anzeigename (ersatzweise URL), deutsch & ohne
+   Groß/Klein-Unterschied, damit z.B. "Über" richtig einsortiert wird. */
+const byName = (a, b) =>
+  String(a.name || a.url || "").localeCompare(
+    String(b.name || b.url || ""), "de", { sensitivity: "base" }
+  );
+
 export function render() {
   const data = loadData();
   const folders = (data && data.folders) || [];
@@ -44,25 +51,42 @@ export function render() {
     // Suchmodus: flache, gefilterte Trefferliste, keine Ordner.
     sheetsRoot.innerHTML = "";
     homeFav.innerHTML = "";
-    const hits = allBookmarks(data).filter((bm) => matchesQuery(bm, q));
+    const hits = allBookmarks(data).filter((bm) => matchesQuery(bm, q)).sort(byName);
     homeGrid.innerHTML = hits.length
-      ? hits.map(tileHTML).join("")
+      ? `<div class="home-grid">${hits.map(tileHTML).join("")}</div>`
       : `<div class="empty-home"><i data-lucide="search-x" class="eh-ico"></i>
            <p>Nichts gefunden für „${esc(getQuery().trim())}".</p></div>`;
     if (window.lucide) lucide.createIcons();
     return;
   }
 
-  // Normalansicht: Favoriten ganz oben (Schnellzugriff), darunter Ordner +
-  // lose Bookmarks. Favoriten sind die in Toride mit dem Stern markierten
-  // Bookmarks (Feld `isFavorite`), egal ob sie sonst in einem Ordner stecken.
-  const favorites = allBookmarks(data).filter((bm) => bm.isFavorite);
+  // Normalansicht: Favoriten ganz oben (Schnellzugriff), darunter die Ordner
+  // und die losen Bookmarks (Apps) — jeweils alphabetisch sortiert und mit
+  // eigener Überschrift, die nur erscheint, wenn es Einträge dafür gibt.
+  // Favoriten sind die in Toride mit dem Stern markierten Bookmarks
+  // (Feld `isFavorite`), egal ob sie sonst in einem Ordner stecken.
+  const favorites = allBookmarks(data).filter((bm) => bm.isFavorite).sort(byName);
   homeFav.innerHTML = favorites.length
     ? `<h3 class="sheet-sub home-fav-title">Favoriten</h3><div class="home-grid">${favorites.map(tileHTML).join("")}</div>`
     : "";
 
-  homeGrid.innerHTML = folders.map(folderTileHTML).join("") + roots.map(tileHTML).join("");
-  sheetsRoot.innerHTML = folders.map(sheetHTML).join("");
+  // Ordner alphabetisch, auch ihre Links innen alphabetisch.
+  const sortedFolders = [...folders]
+    .map((f) => ({ ...f, bookmarks: [...(f.bookmarks || [])].sort(byName) }))
+    .sort(byName);
+  const sortedRoots = [...roots].sort(byName);
+
+  let html = "";
+  if (sortedFolders.length) {
+    html += `<h3 class="sheet-sub section-title">Ordner</h3>`;
+    html += `<div class="home-grid">${sortedFolders.map(folderTileHTML).join("")}</div>`;
+  }
+  if (sortedRoots.length) {
+    html += `<h3 class="sheet-sub section-title">Apps</h3>`;
+    html += `<div class="home-grid">${sortedRoots.map(tileHTML).join("")}</div>`;
+  }
+  homeGrid.innerHTML = html;
+  sheetsRoot.innerHTML = sortedFolders.map(sheetHTML).join("");
 
   homeGrid.querySelectorAll(".folder-tile").forEach((btn) => {
     const sheet = document.getElementById("sheet-" + btn.dataset.sheet);

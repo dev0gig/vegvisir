@@ -794,6 +794,13 @@ body.dropping::after { background: rgba(111,214,207,0.06); }
 }
 #homeFav .home-grid { margin-bottom: clamp(24px, 4vw, 40px); }
 @media (min-width: 860px) { .home-fav-title { max-width: 880px; } }
+
+/* Abschnitts-Überschriften „Ordner" / „Apps" auf der Startseite. */
+.section-title {
+  display: block; max-width: 760px; margin: clamp(18px, 3vw, 28px) auto 12px; padding: 0 4px;
+}
+#homeGrid > .section-title:first-child { margin-top: 0; }
+@media (min-width: 860px) { .section-title { max-width: 880px; } }
 .drop-veil {
   position: fixed; inset: 0; z-index: 60; display: none;
   place-items: center; pointer-events: none;
