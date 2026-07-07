@@ -25,6 +25,16 @@ const fmtDe = (iso) => fromIso(iso).toLocaleDateString("de-AT", { day: "2-digit"
 const WOCHENTAGE = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
 const WT_KURZ = ["Mo", "Di", "Mi", "Do", "Fr"];
 
+/* Damit eine ICS-Datei auch von außen (Slash-Befehl /import, Drag&Drop)
+   importiert werden kann: Ist das Dienstplan-Werkzeug offen, übernimmt es die
+   Datei sofort; sonst wird sie gemerkt und beim Öffnen verarbeitet. */
+let activeImport = null; // Funktion, die eine Datei importiert, solange das Tool offen ist
+let pendingFile = null;  // Datei, die auf das Öffnen des Tools wartet
+export function importIcsFile(file) {
+  if (activeImport) activeImport(file);
+  else pendingFile = file;
+}
+
 export function renderDienstplan(container, api) {
   let view = "woche"; // "woche" | "monat"
   try { view = JSON.parse(localStorage.getItem(VIEW_KEY) || "{}").view === "monat" ? "monat" : "woche"; } catch {}
@@ -273,5 +283,10 @@ export function renderDienstplan(container, api) {
   if (window.lucide) lucide.createIcons();
   refresh();
 
-  return () => { closed = true; };
+  // Import-Haken für /import und Drag&Drop registrieren; eine bereits wartende
+  // Datei (Tool war beim Drop noch zu) sofort verarbeiten.
+  activeImport = importFile;
+  if (pendingFile) { const f = pendingFile; pendingFile = null; importFile(f); }
+
+  return () => { closed = true; if (activeImport === importFile) activeImport = null; };
 }

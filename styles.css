@@ -935,6 +935,79 @@ body.dropping .drop-veil { display: grid; }
   .dp-range { order: 3; flex-basis: 100%; }
 }
 
+/* ============ SLASH-BEFEHLE (Palette + Vorschau-Panel) ============ */
+/* Fixer Layer über der Suchleiste: Palette sitzt unten (nah an der Leiste),
+   Ergebnisse/Vorschau steigen darüber auf. */
+#cmdLayer {
+  position: fixed; left: 50%;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 36;
+  width: min(560px, calc(100% - 32px));
+  display: flex; flex-direction: column-reverse; gap: 8px;
+  pointer-events: none; /* nur die inneren Kästen fangen Klicks */
+}
+#cmdLayer > * { pointer-events: auto; }
+
+.cmd-palette, .cmd-panel {
+  border-radius: var(--radius);
+  background: rgba(16, 24, 42, 0.82);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 18px 50px -22px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+}
+.cmd-palette { padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+.cmd-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px 12px; border: 0; border-radius: var(--radius-sm);
+  background: none; color: var(--steel-300); cursor: pointer; text-align: left;
+  font: inherit; font-size: 0.9rem;
+}
+.cmd-item.active { background: rgba(111, 214, 207, 0.12); color: var(--steel-100); }
+.cmd-item i, .cmd-item svg { width: 16px; height: 16px; flex: none; color: var(--teal); }
+.cmd-key { font-weight: 600; color: var(--steel-100); min-width: 84px; font-variant-numeric: tabular-nums; }
+.cmd-desc { color: var(--steel-400); font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.cmd-panel { padding: 10px 12px; max-height: 46vh; overflow-y: auto; }
+.cmd-calc { font-size: 1.05rem; color: var(--steel-300); }
+.cmd-calc strong { color: var(--teal); font-weight: 700; }
+.cmd-hint { color: var(--steel-400); font-size: 0.85rem; }
+.cmd-flash { color: var(--steel-100); font-size: 0.9rem; }
+.cmd-flash.ok { color: #7fd6b0; }
+.cmd-flash.warn { color: #e0b98a; }
+.cmd-results { display: flex; flex-direction: column; gap: 4px; }
+.cmd-result {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 6px 8px; border-radius: var(--radius-sm); background: var(--glass);
+}
+.cmd-result-tag { color: var(--steel-400); font-size: 0.78rem; min-width: 74px; }
+.cmd-result-zeit { color: var(--teal); font-variant-numeric: tabular-nums; font-size: 0.78rem; font-weight: 600; }
+.cmd-result-titel { color: var(--steel-100); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Undo-Modal („Was rückgängig machen?") */
+.cmd-modal-back {
+  position: fixed; inset: 0; z-index: 80;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  background: rgba(6, 10, 20, 0.6); backdrop-filter: blur(2px);
+}
+.cmd-modal {
+  width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 12px;
+  padding: 20px; border-radius: var(--radius);
+  background: var(--ink-850); border: 1px solid var(--glass-border); box-shadow: var(--shadow);
+}
+.cmd-modal-title { font-size: 1.05rem; font-weight: 600; color: var(--steel-100); }
+.cmd-modal-sub { font-size: 0.85rem; color: var(--steel-400); }
+.cmd-modal-actions { display: flex; flex-direction: column; gap: 8px; }
+.cmd-modal-actions .dp-btn { display: flex; align-items: center; justify-content: flex-start; width: 100%; height: auto; gap: 10px; padding: 12px 14px; }
+.cmd-modal-actions .dp-btn i, .cmd-modal-actions .dp-btn svg { width: 18px; height: 18px; }
+.cmd-modal-cancel {
+  align-self: flex-end; padding: 8px 12px; border: 0; background: none;
+  color: var(--steel-400); cursor: pointer; font: inherit; font-size: 0.85rem;
+}
+.cmd-modal-cancel:hover { color: var(--steel-100); }
+
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition-duration: 0.01ms !important; }
 }

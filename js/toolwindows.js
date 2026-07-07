@@ -83,6 +83,15 @@ export function buildDock() {
 
 function focusWindow(el) { el.style.zIndex = ++winZ; }
 
+/* Ein Werkzeug anhand seiner id öffnen (für die Slash-Befehle). Ist es schon
+   offen, wird es nur nach vorne geholt statt umgeschaltet. */
+export function openToolById(id) {
+  const tool = TOOLS.find((t) => t.id === id);
+  if (!tool) return;
+  if (openWindows[id]) { focusWindow(openWindows[id].el); return; }
+  openToolWindow(tool);
+}
+
 export function openToolWindow(tool) {
   if (!tool) return;
   // Schon offen? Erneutes Tippen auf den Knopf schließt das Werkzeug wieder.

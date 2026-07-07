@@ -47,7 +47,9 @@ export function render() {
 
   const q = getQuery().trim().toLowerCase();
 
-  if (q) {
+  // Beginnt die Eingabe mit "/", ist es ein Slash-Befehl (Palette liegt über
+  // der Ansicht) — dann NICHT die Bookmarks filtern, Normalansicht behalten.
+  if (q && !q.startsWith("/")) {
     // Suchmodus: flache, gefilterte Trefferliste, keine Ordner.
     sheetsRoot.innerHTML = "";
     homeFav.innerHTML = "";
