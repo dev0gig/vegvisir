@@ -118,6 +118,13 @@ export function previewCommand(text) {
     showPanel(`<div class="cmd-calc">${esc(arg.trim())} = <strong>${v === null ? "?" : esc(fmtNum(v))}</strong></div>`);
     return;
   }
+  if (cmd === "/google") {
+    // Sichtbarer Wegweiser: /google nimmt ein Argument, darum führt der erste
+    // Enter nur zur Vervollständigung — ohne Hinweis sähe das nach "nichts
+    // passiert" aus.
+    showPanel('<div class="cmd-hint">Weiter tippen: <strong>verbinden</strong> · <strong>sync</strong> · <strong>trennen</strong> — oder Enter für den Status.</div>');
+    return;
+  }
   if (cmd === "/k") {
     const my = ++kToken;
     showPanel('<div class="cmd-hint">Suche im Dienstplan …</div>');
