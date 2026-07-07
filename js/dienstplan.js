@@ -21,6 +21,15 @@ const addDays = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); r
    gewollt — sie gehören zur laufenden Woche, damit "Heute" am Wochenende die
    gerade vergangene Arbeitswoche zeigt). */
 const mondayOf = (d) => addDays(d, -((d.getDay() + 6) % 7));
+/* ISO-Kalenderwoche (KW): die Woche gehört zu dem Jahr, in dem ihr
+   Donnerstag liegt (übliche Zählweise in Österreich/Deutschland). */
+const isoWeek = (d) => {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const jahresStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil(((t - jahresStart) / 86400000 + 1) / 7);
+};
 const fmtZeit = (t) => String(t).slice(0, 5); // "08:00:00" → "08:00"
 const fmtDe = (iso) => fromIso(iso).toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" });
 
@@ -109,7 +118,7 @@ export function renderDienstplan(container, api) {
     if (view === "woche") {
       const mo = mondayOf(anchor), fr = addDays(mo, 4);
       const f = (d) => d.toLocaleDateString("de-AT", { day: "numeric", month: "short" });
-      return `${f(mo)} – ${f(fr)} ${fr.getFullYear()}`;
+      return `KW ${isoWeek(mo)} · ${f(mo)} – ${f(fr)} ${fr.getFullYear()}`;
     }
     return anchor.toLocaleDateString("de-AT", { month: "long", year: "numeric" });
   }
@@ -199,22 +208,37 @@ export function renderDienstplan(container, api) {
     calEl.innerHTML = html + "</div>";
   }
 
-  /* ---- Laden + Zeichnen ---- */
+  /* ---- Laden + Zeichnen ----
+     Beim Blättern und beim Wechsel Woche/Monat bleibt der bisherige Inhalt
+     stehen und wird nur leicht abgeblendet, bis die neuen Termine da sind —
+     das Sheet klappt also nicht mehr zusammen und wieder auf. Eine laufende
+     Nummer verwirft Antworten, die von schnellem Blättern überholt wurden. */
+  let loadSeq = 0;
   async function refresh() {
     $("[data-range]").textContent = rangeLabel();
     container.querySelectorAll(".dp-sw").forEach((b) =>
       b.classList.toggle("active", b.dataset.view === view));
 
     const { von, bis } = range();
-    calEl.innerHTML = '<div class="dp-loading">Lade Termine…</div>';
+    const my = ++loadSeq;
+    if (calEl.childElementCount) {
+      calEl.style.minHeight = calEl.offsetHeight + "px"; // Höhe festhalten
+      calEl.classList.add("busy");
+    } else {
+      calEl.innerHTML = '<div class="dp-loading">Lade Termine…</div>';
+    }
     let rows = [];
     try {
       rows = await fetchEvents(von, bis);
     } catch (err) {
-      if (!closed) calEl.innerHTML = `<div class="dp-loading">${esc(err.message || "Fehler beim Laden.")}</div>`;
+      if (!closed && my === loadSeq) {
+        calEl.classList.remove("busy");
+        calEl.style.minHeight = "";
+        calEl.innerHTML = `<div class="dp-loading">${esc(err.message || "Fehler beim Laden.")}</div>`;
+      }
       return;
     }
-    if (closed) return;
+    if (closed || my !== loadSeq) return;
 
     const byDate = new Map();
     rows.forEach((r) => {
@@ -223,6 +247,8 @@ export function renderDienstplan(container, api) {
     });
     renderStrip(byDate);
     if (view === "woche") renderWoche(byDate); else renderMonat(byDate);
+    calEl.classList.remove("busy");
+    calEl.style.minHeight = "";
   }
 
   /* ---- Bestätigungs-Dialog für den Bereinigungs-Zeitraum (Spec 2.2) ----

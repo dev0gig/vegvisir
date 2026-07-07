@@ -761,6 +761,10 @@ body.dropping .drop-veil { display: grid; }
 
 .dp-loading { padding: 28px 14px; text-align: center; color: var(--color-ink-mute); font-size: 0.9rem; }
 
+/* Während neue Termine laden, bleibt der alte Inhalt abgeblendet stehen
+   (kein Zusammenklappen des Sheets beim Blättern/Ansichtswechsel). */
+.dp-cal.busy { opacity: 0.55; pointer-events: none; transition: opacity .15s var(--ease); }
+
 /* Termin-Blöcke: Kapseln in der gedeckten Kategoriefarbe */
 .dp-ev {
   display: flex; align-items: baseline; gap: 8px;

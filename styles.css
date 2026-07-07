@@ -1663,6 +1663,11 @@ body.dropping .drop-veil {
   color: var(--color-ink-mute);
   font-size: 0.9rem;
 }
+.dp-cal.busy {
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity .15s var(--ease);
+}
 .dp-ev {
   display: flex;
   align-items: baseline;
