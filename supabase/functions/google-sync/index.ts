@@ -9,9 +9,11 @@
      "WienEnergie Dienstplan" (siehe ensureCalendar). Der Haupt-Kalender
      ("primary") und alle anderen Kalender werden NIE angefasst — das ist
      mehrfach abgesichert (Namens-Prüfung, primary-Sperre).
-   - Supabase ist die Wahrheit, Google nur Spiegel: Beim Sync wird der
-     Zeitraum im Google-Kalender komplett geleert und neu geschrieben.
-     Doppelte Einträge sind dadurch unmöglich.
+   - Supabase ist die Wahrheit, Google nur Spiegel: Beim Sync wird pro
+     Termin ein Fingerabdruck (Datum+Zeiten+Titel) verglichen und NUR die
+     Unterschiede geschrieben — unveränderte Termine bleiben unangetastet
+     (Delta-Sync, schont das Google-Rate-Limit). Überzählige/fremde
+     Einträge im Zeitraum werden entfernt; Doppelte sind dadurch unmöglich.
 
    Benötigte Supabase-Secrets (siehe docs/google-sync-einrichtung.md):
      GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
@@ -22,7 +24,8 @@
      status     → { connected, kalender }
      authurl    → { url }  (Google-Zustimmungsseite, Frontend leitet dorthin)
      exchange   → { ok, kalender }  (Code gegen refresh_token tauschen)
-     sync       → { ok, geloescht, geschrieben, kalender }  (von/bis optional)
+     sync       → { ok, geloescht, geschrieben, geaendert, kalender }
+                  (von/bis optional; geaendert = geloescht + geschrieben)
      disconnect → { ok }  (Token widerrufen und löschen) */
 
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -156,13 +159,22 @@ async function ensureCalendar(admin: any, userId: string, token: string, storedI
   return found;
 }
 
-/* IDs aller Termine im Kalender sammeln — optional nur im Zeitraum [von, bis]
-   (je "YYYY-MM-DD", inklusiv). Das Zeitfenster für die API wird großzügig
-   gewählt und dann exakt nach dem lokalen Datum gefiltert (bei eigenen
-   Terminen über die mitgespeicherte Eigenschaft `datum`), damit an den
-   Zeitzonen-Rändern nichts falsch gelöscht wird. */
-async function listEventIds(token: string, calId: string, von?: string | null, bis?: string | null) {
-  const ids: string[] = [];
+/* Fingerabdruck eines Termins: gleiches Datum + gleiche Zeiten + gleicher
+   Titel = gleicher Termin. Darüber erkennt der Delta-Sync, was schon bei
+   Google steht und unangetastet bleiben kann. */
+function sigOf(datum: string, start: string, bis: string, titel: string): string {
+  return `${datum}|${start}|${bis}|${titel}`;
+}
+
+/* Alle Termine im Kalender sammeln (ID + Fingerabdruck) — optional nur im
+   Zeitraum [von, bis] (je "YYYY-MM-DD", inklusiv). Das Zeitfenster für die
+   API wird großzügig gewählt und dann exakt nach dem lokalen Datum gefiltert
+   (bei eigenen Terminen über die mitgespeicherte Eigenschaft `datum`), damit
+   an den Zeitzonen-Rändern nichts falsch gelöscht wird. Der Fingerabdruck
+   kommt aus der beim Schreiben hinterlegten Eigenschaft `sig`; für ältere
+   Termine (vor dem Delta-Sync) wird er aus den Google-Feldern rekonstruiert. */
+async function listGoogleEvents(token: string, calId: string, von?: string | null, bis?: string | null) {
+  const found: { id: string; sig: string }[] = [];
   const dayMs = 86400000;
   const base = new URLSearchParams({ maxResults: "2500", singleEvents: "true", showDeleted: "false" });
   if (von && bis) {
@@ -175,14 +187,23 @@ async function listEventIds(token: string, calId: string, von?: string | null, b
     if (pageToken) p.set("pageToken", pageToken);
     const page = (await gfetch(token, "GET", `${GCAL}/calendars/${encodeURIComponent(calId)}/events?` + p)) as any;
     for (const ev of page.items || []) {
-      const datum =
-        ev.extendedProperties?.private?.datum ||
-        String(ev.start?.dateTime || ev.start?.date || "").slice(0, 10);
-      if (!von || !bis || (datum >= von && datum <= bis)) ids.push(ev.id);
+      const priv = ev.extendedProperties?.private || {};
+      const datum = priv.datum || String(ev.start?.dateTime || ev.start?.date || "").slice(0, 10);
+      if (von && bis && (datum < von || datum > bis)) continue;
+      // Ältere Termine ohne `sig`: Zeiten aus "…THH:MM:SS+…" herausschneiden.
+      const sig =
+        priv.sig ||
+        sigOf(
+          datum,
+          String(ev.start?.dateTime || "").slice(11, 19),
+          String(ev.end?.dateTime || "").slice(11, 19),
+          ev.summary || "",
+        );
+      found.push({ id: ev.id, sig });
     }
     pageToken = page.nextPageToken || "";
   } while (pageToken);
-  return ids;
+  return found;
 }
 
 /* Viele kleine Google-Aufrufe in Häppchen zu 5 parallel abarbeiten. */
@@ -341,25 +362,63 @@ Deno.serve(async (req: Request) => {
         .order("start_zeit", { ascending: true });
       if (evErr) throw new CodeError("Dienstplan laden fehlgeschlagen: " + evErr.message);
 
-      // Spiegeln: Zeitraum (oder alles) im eigenen Kalender leeren …
-      const ids = await listEventIds(token, calId, von, bis);
-      await inChunks(ids, (id) =>
+      /* Delta bestimmen: Was bei Google steht und laut Supabase dort
+         hingehört, bleibt unangetastet. Nur Überzähliges wird gelöscht und
+         nur Fehlendes neu geschrieben — meist also gar nichts, was das
+         Google-Rate-Limit schont. Gezählt wird pro Fingerabdruck (Multiset),
+         damit auch versehentliche Doppelte bei Google abgebaut werden. */
+      const vorhanden = await listGoogleEvents(token, calId, von, bis);
+
+      // Soll-Bestand: wie oft jeder Fingerabdruck laut Supabase vorkommen muss.
+      const soll = new Map<string, number>();
+      for (const e of events || []) {
+        const s = sigOf(e.datum, e.start_zeit, e.end_zeit, e.titel);
+        soll.set(s, (soll.get(s) || 0) + 1);
+      }
+
+      // Google-Bestand durchgehen: passende behalten, den Rest löschen.
+      const behalten = new Map<string, number>();
+      const loeschen: string[] = [];
+      for (const ev of vorhanden) {
+        const habe = behalten.get(ev.sig) || 0;
+        if (habe < (soll.get(ev.sig) || 0)) behalten.set(ev.sig, habe + 1);
+        else loeschen.push(ev.id);
+      }
+
+      // Fehlende Termine bestimmen (Soll minus Behaltenes).
+      const fehlt: any[] = [];
+      const belegt = new Map<string, number>();
+      for (const e of events || []) {
+        const s = sigOf(e.datum, e.start_zeit, e.end_zeit, e.titel);
+        const b = belegt.get(s) || 0;
+        if (b < (behalten.get(s) || 0)) belegt.set(s, b + 1);
+        else fehlt.push(e);
+      }
+
+      await inChunks(loeschen, (id) =>
         gfetch(token, "DELETE", `${GCAL}/calendars/${encodeURIComponent(calId)}/events/${encodeURIComponent(id)}`),
       );
 
-      // … und aus Supabase frisch neu schreiben.
-      await inChunks(events || [], (e: any) => {
+      await inChunks(fehlt, (e: any) => {
         // Nachtdienst über Mitternacht: Ende liegt am Folgetag.
         const endDatum = e.end_zeit <= e.start_zeit ? plusDay(e.datum) : e.datum;
         return gfetch(token, "POST", `${GCAL}/calendars/${encodeURIComponent(calId)}/events`, {
           summary: e.titel,
           start: { dateTime: `${e.datum}T${e.start_zeit}`, timeZone: TZ },
           end: { dateTime: `${endDatum}T${e.end_zeit}`, timeZone: TZ },
-          extendedProperties: { private: { app: "vegvisir", datum: e.datum } },
+          extendedProperties: {
+            private: { app: "vegvisir", datum: e.datum, sig: sigOf(e.datum, e.start_zeit, e.end_zeit, e.titel) },
+          },
         });
       });
 
-      return json({ ok: true, geloescht: ids.length, geschrieben: (events || []).length, kalender: CAL_NAME });
+      return json({
+        ok: true,
+        geloescht: loeschen.length,
+        geschrieben: fehlt.length,
+        geaendert: loeschen.length + fehlt.length,
+        kalender: CAL_NAME,
+      });
     }
 
     return fail("Unbekannte Aktion.");

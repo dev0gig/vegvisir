@@ -7,7 +7,7 @@
 
 import { parseIcs } from "./ics.js";
 import { importEventsInRange, fetchEvents } from "./dienstplan-db.js";
-import { syncGoogleRange, fullGoogleSync, googleStatus, connectGoogle } from "./google-sync.js";
+import { syncGoogleRange, fullGoogleSync, googleStatus, connectGoogle, syncSummary } from "./google-sync.js";
 import { esc } from "./dom.js";
 
 const VIEW_KEY = "vegvisir.tool.dienstplan"; // gemerkte Ansicht (woche/monat)
@@ -334,7 +334,7 @@ export function renderDienstplan(container, api) {
       // sonst bleibt es still beim normalen Import-Ergebnis).
       try {
         const g = await syncGoogleRange(range.von, range.bis);
-        showMsg(`${termine} Termine importiert — Google-Kalender aktualisiert (${g.geschrieben} Termine).`, "ok");
+        showMsg(`${termine} Termine importiert — Google-Kalender abgeglichen (${syncSummary(g)}).`, "ok");
       } catch (err) {
         if (err.code !== "not_connected") {
           showMsg("Import ok, aber Google-Sync fehlgeschlagen: " + (err.message || ""), "warn");
@@ -406,7 +406,7 @@ export function renderDienstplan(container, api) {
     try {
       const g = await fullGoogleSync();
       gConnected = true;
-      showMsg(`Google-Kalender „${g.kalender}“ neu geschrieben (${g.geschrieben} Termine).`, "ok");
+      showMsg(`Google-Kalender „${g.kalender}“ abgeglichen (${syncSummary(g)}).`, "ok");
     } catch (err) {
       if (err.code === "not_connected" || err.code === "reconnect") gConnected = false;
       showMsg(err.message || "Google-Sync fehlgeschlagen.", "warn");

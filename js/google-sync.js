@@ -67,16 +67,24 @@ export async function handleGoogleRedirect() {
   return call({ action: "exchange", code, redirectUri: appUrl() });
 }
 
-/* Spiegel-Sync eines Zeitraums (je "YYYY-MM-DD", inklusiv): der Zeitraum im
-   Google-Kalender wird geleert und aus Supabase neu geschrieben. */
+/* Spiegel-Sync eines Zeitraums (je "YYYY-MM-DD", inklusiv): Delta-Abgleich —
+   nur Unterschiede zwischen Supabase und Google werden geschrieben,
+   unveränderte Termine bleiben unangetastet (schont das Google-Rate-Limit). */
 export function syncGoogleRange(von, bis) {
   return call({ action: "sync", von, bis });
 }
 
-/* Kompletter Spiegel-Sync (Selbstheilung, für /sync): den GANZEN Kalender
-   leeren und den gesamten Supabase-Bestand neu schreiben. */
+/* Kompletter Spiegel-Sync (Selbstheilung, für /sync): Delta-Abgleich über
+   den GANZEN Kalender gegen den gesamten Supabase-Bestand. */
 export function fullGoogleSync() {
   return call({ action: "sync" });
+}
+
+/* Sync-Ergebnis als kurzen deutschen Text ("keine Änderungen" /
+   "1 Änderung" / "N Änderungen") — für die Erfolgsmeldungen im UI. */
+export function syncSummary(g) {
+  const n = (g && g.geaendert) || 0;
+  return n === 0 ? "keine Änderungen" : n === 1 ? "1 Änderung" : `${n} Änderungen`;
 }
 
 /* Verbindung trennen: Dauer-Token bei Google widerrufen und löschen.

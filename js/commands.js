@@ -11,7 +11,7 @@
 import { openToolById } from "./toolwindows.js";
 import { pickFile } from "./import.js";
 import { undoBookmarks, undoDienstplan } from "./backup.js";
-import { connectGoogle, disconnectGoogle, googleStatus, fullGoogleSync, syncGoogleRange } from "./google-sync.js";
+import { connectGoogle, disconnectGoogle, googleStatus, fullGoogleSync, syncGoogleRange, syncSummary } from "./google-sync.js";
 import { logout } from "./auth.js";
 import { pullFromSupabase, loadData, saveData } from "./data.js";
 import { fetchEvents } from "./dienstplan-db.js";
@@ -159,7 +159,7 @@ async function resync() {
   // Ist Google nicht verbunden, bleibt es still beim normalen Cloud-Abgleich.
   try {
     const g = await fullGoogleSync();
-    flash(`Mit der Cloud abgeglichen — Google-Kalender neu geschrieben (${g.geschrieben} Termine).`, "ok");
+    flash(`Mit der Cloud abgeglichen — Google-Kalender: ${syncSummary(g)}.`, "ok");
   } catch (err) {
     if (err.code === "not_connected") flash("Mit der Cloud abgeglichen.", "ok");
     else flash("Cloud ok, aber Google-Sync fehlgeschlagen: " + (err.message || ""), "warn");
@@ -174,7 +174,7 @@ async function doUndo(kind) {
     // Google-Spiegel des betroffenen Zeitraums sofort nachziehen (falls verbunden).
     let note = "", warn = false;
     if (r.von && r.bis) {
-      try { await syncGoogleRange(r.von, r.bis); note = " Google-Kalender aktualisiert."; }
+      try { const g = await syncGoogleRange(r.von, r.bis); note = ` Google-Kalender: ${syncSummary(g)}.`; }
       catch (err) {
         if (err.code !== "not_connected") { note = " Google-Sync fehlgeschlagen: " + (err.message || ""); warn = true; }
       }
@@ -243,9 +243,9 @@ export async function runCommand(text) {
           await disconnectGoogle();
           flash("Google-Verbindung getrennt.", "ok");
         } else if (a === "sync") {
-          showPanel('<div class="cmd-hint">Schreibe den Google-Kalender neu …</div>');
+          showPanel('<div class="cmd-hint">Gleiche den Google-Kalender ab …</div>');
           const g = await fullGoogleSync();
-          flash(`Google-Kalender „${g.kalender}“ neu geschrieben (${g.geschrieben} Termine).`, "ok");
+          flash(`Google-Kalender „${g.kalender}“ abgeglichen (${syncSummary(g)}).`, "ok");
         } else {
           const s = await googleStatus();
           flash(s.connected
