@@ -196,12 +196,29 @@ export function closeToolWindow(id) {
   }
 }
 
-/* Werkzeug-Sheet am Griff nach unten wegziehen (Schließen ab ~110px). */
+/* Werkzeug-Sheet nach unten wegziehen (Schließen ab ~110px) — wie bei den
+   Ordner-Sheets auf zwei Wegen:
+    • Desktop: per Maus am Griff.
+    • Touch: mit einer Wischgeste irgendwo auf der GESAMTEN Sheet-Fläche.
+      Damit Wischen und Scrollen sich nicht in die Quere kommen, startet die
+      Schließ-Geste nur, wenn der Inhalt ganz oben steht und man nach unten
+      zieht — sonst scrollt der Inhalt ganz normal. */
 function attachToolSheetDrag(win, id) {
   const handle = win.querySelector("[data-handle]");
   if (!handle) return;
+  const scroll = win.querySelector(".tw-body");
   let startY = 0, dy = 0, dragging = false;
+
+  const finish = () => {
+    dragging = false;
+    win.classList.remove("dragging");
+    if (dy > 110) closeToolWindow(id);
+    else win.style.transform = "translate(-50%, 0)";
+  };
+
+  /* Desktop: Maus am Griff */
   handle.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "touch") return; // Touch läuft über die Geste unten
     dragging = true; startY = e.clientY; dy = 0;
     win.classList.add("dragging");
     handle.setPointerCapture(e.pointerId);
@@ -211,15 +228,40 @@ function attachToolSheetDrag(win, id) {
     dy = Math.max(0, e.clientY - startY);
     win.style.transform = `translate(-50%, ${dy}px)`;
   });
-  const end = (e) => {
-    if (!dragging) return;
-    dragging = false; win.classList.remove("dragging");
-    try { handle.releasePointerCapture(e.pointerId); } catch {}
-    if (dy > 110) closeToolWindow(id);
-    else win.style.transform = "translate(-50%, 0)";
+  handle.addEventListener("pointerup", () => { if (dragging) finish(); });
+  handle.addEventListener("pointercancel", () => { if (dragging) finish(); });
+
+  /* Touch: Wischen auf der ganzen Fläche */
+  let touchActive = false;
+  win.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) return;
+    startY = e.touches[0].clientY; dy = 0;
+    touchActive = true; dragging = false;
+  }, { passive: true });
+  win.addEventListener("touchmove", (e) => {
+    if (!touchActive) return;
+    const delta = e.touches[0].clientY - startY;
+    const atTop = !scroll || scroll.scrollTop <= 0;
+    if (!dragging) {
+      // Geste erst starten, wenn man von ganz oben nach unten zieht
+      if (delta > 6 && atTop) {
+        dragging = true;
+        win.classList.add("dragging");
+      } else {
+        return; // sonst normal scrollen lassen
+      }
+    }
+    dy = Math.max(0, delta);
+    e.preventDefault();
+    win.style.transform = `translate(-50%, ${dy}px)`;
+  }, { passive: false });
+  const endTouch = () => {
+    if (!touchActive) return;
+    touchActive = false;
+    if (dragging) finish();
   };
-  handle.addEventListener("pointerup", end);
-  handle.addEventListener("pointercancel", end);
+  win.addEventListener("touchend", endTouch);
+  win.addEventListener("touchcancel", endTouch);
 }
 
 /* Fenster an der Titelleiste mit Maus oder Finger frei verschieben. */
