@@ -5,7 +5,7 @@
    der Titelleiste: ICS-Datei wählen → parsen → in Supabase mergen. */
 
 import { parseIcs } from "./ics.js";
-import { importEvents, fetchEvents } from "./dienstplan-db.js";
+import { importEventsInRange, fetchEvents } from "./dienstplan-db.js";
 import { esc } from "./dom.js";
 
 const VIEW_KEY = "vegvisir.tool.dienstplan"; // gemerkte Ansicht (woche/monat)
@@ -20,6 +20,7 @@ const addDays = (d, n) => { const r = new Date(d); r.setDate(r.getDate() + n); r
    gerade vergangene Arbeitswoche zeigt). */
 const mondayOf = (d) => addDays(d, -((d.getDay() + 6) % 7));
 const fmtZeit = (t) => String(t).slice(0, 5); // "08:00:00" → "08:00"
+const fmtDe = (iso) => fromIso(iso).toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" });
 
 const WOCHENTAGE = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
 const WT_KURZ = ["Mo", "Di", "Mi", "Do", "Fr"];
@@ -163,16 +164,84 @@ export function renderDienstplan(container, api) {
     if (view === "woche") renderWoche(byDate); else renderMonat(byDate);
   }
 
+  /* ---- Bestätigungs-Dialog für den Bereinigungs-Zeitraum (Spec 2.2) ----
+     Die ICS enthält nur Tage MIT Terminen; stornierte Randtage stünden sonst
+     als Geister-Einträge da. Deshalb wird der zu bereinigende Zeitraum nicht
+     stillschweigend übernommen, sondern mit Min/Max vorbelegt und editierbar
+     bestätigt. Gibt { von, bis } zurück oder null bei Abbruch. */
+  function askRange({ von, bis, count, filename }) {
+    return new Promise((resolve) => {
+      const back = document.createElement("div");
+      back.className = "dp-dialog-back";
+      back.innerHTML = `
+        <div class="dp-dialog" role="dialog" aria-modal="true" aria-label="Dienstplan importieren">
+          <h3 class="dp-dialog-title">Dienstplan importieren</h3>
+          <p class="dp-dialog-info">Export „${esc(filename || "")}“ erkannt:
+            <strong>${fmtDe(von)} – ${fmtDe(bis)}</strong>
+            (${count} ${count === 1 ? "Eintrag" : "Einträge"})</p>
+          <div class="dp-dialog-range">
+            <label>Zeitraum bereinigen von<input type="date" data-von value="${von}"></label>
+            <label>bis<input type="date" data-bis value="${bis}"></label>
+          </div>
+          <p class="dp-dialog-hint">Dieser Zeitraum wird komplett neu geschrieben. Bei stornierten Randtagen den Bereich einfach erweitern.</p>
+          <div class="dp-dialog-actions">
+            <button class="dp-btn" data-cancel>Abbrechen</button>
+            <button class="dp-btn dp-dialog-ok" data-ok>Importieren</button>
+          </div>
+        </div>`;
+      container.querySelector(".dp").appendChild(back);
+
+      const vonI = back.querySelector("[data-von]");
+      const bisI = back.querySelector("[data-bis]");
+      let done = false;
+      // Escape/Enter in der Capture-Phase abfangen, damit sie zuerst hier landen
+      // (und nicht das Werkzeug-Fenster über den globalen Handler schließen).
+      const onKey = (e) => {
+        if (e.key === "Escape") { e.stopImmediatePropagation(); e.preventDefault(); close(null); }
+      };
+      const close = (result) => {
+        if (done) return;
+        done = true;
+        back.remove();
+        document.removeEventListener("keydown", onKey, true);
+        resolve(result);
+      };
+      document.addEventListener("keydown", onKey, true);
+      back.addEventListener("click", (e) => { if (e.target === back) close(null); });
+      back.querySelector("[data-cancel]").addEventListener("click", () => close(null));
+      back.querySelector("[data-ok]").addEventListener("click", () => {
+        const v = vonI.value, b = bisI.value;
+        if (!v || !b) { showMsg("Bitte gültige Datumsgrenzen wählen.", "warn"); return; }
+        if (v > b) { showMsg("Das Von-Datum liegt nach dem Bis-Datum.", "warn"); return; }
+        close({ von: v, bis: b });
+      });
+    });
+  }
+
   /* ---- ICS-Import ---- */
   async function importFile(file) {
+    let events;
+    try {
+      events = parseIcs(await file.text());
+    } catch (err) {
+      showMsg(err.message || "Datei konnte nicht gelesen werden.", "warn");
+      return;
+    }
+    if (!events.length) { showMsg("Keine Termine in der Datei gefunden.", "warn"); return; }
+
+    // Min/Max-Datum aus der Datei (parseIcs liefert bereits chronologisch sortiert).
+    const von0 = events[0].datum;
+    const bis0 = events[events.length - 1].datum;
+
+    const range = await askRange({ von: von0, bis: bis0, count: events.length, filename: file.name });
+    if (!range) { showMsg(""); return; } // abgebrochen
+
     showMsg("Importiere „" + file.name + "“ …");
     try {
-      const events = parseIcs(await file.text());
-      if (!events.length) { showMsg("Keine Termine in der Datei gefunden.", "warn"); return; }
-      const { tage, termine } = await importEvents(events);
+      const { tage, termine } = await importEventsInRange(events, range.von, range.bis, file.name);
       showMsg(`${tage} Tage aktualisiert, ${termine} Termine importiert.`, "ok");
-      // Zum ersten importierten Tag springen, damit das Ergebnis sofort sichtbar ist.
-      anchor = fromIso(events[0].datum);
+      // Zum Anfang des bereinigten Zeitraums springen, damit das Ergebnis sofort sichtbar ist.
+      anchor = fromIso(range.von);
       await refresh();
     } catch (err) {
       showMsg(err.message || "Import fehlgeschlagen.", "warn");

@@ -3,13 +3,16 @@
    und dieselbe Anmeldung wie der Bookmark-Sync (auth.js). RLS auf der Tabelle
    sorgt serverseitig dafür, dass jeder nur seine eigenen Zeilen sieht.
 
-   Merge-Regel beim Import: Es zählt AUSSCHLIESSLICH das Datum. Für jeden Tag,
-   der in der neuen ICS-Datei vorkommt, werden zuerst alle bestehenden Termine
-   dieses Tages gelöscht und dann die neuen eingefügt — "neuester Import
-   gewinnt komplett" pro Tag. Tage, die in der Datei nicht vorkommen, bleiben
-   unangetastet. */
+   Import-Regel (Wegvisier-Spec v2, Abschnitt 2): Es wird ein bestätigter,
+   bereinigter Zeitraum [von, bis] komplett neu geschrieben ("Mirror-Sync").
+   Alles im Zeitraum wird gelöscht und durch die neuen Termine ersetzt; Tage
+   außerhalb bleiben unangetastet. So können durch nachträgliche Änderungen im
+   selben Monat keine Doppel- oder Geister-Einträge entstehen. Vor jedem Import
+   wird der komplette bisherige Stand gesichert (siehe backup.js), damit sich
+   der Import per /undo zurücknehmen lässt. */
 
 import { getSupabase, getUser } from "./auth.js";
+import { snapshotDienstplan, logImport } from "./backup.js";
 
 function requireClient() {
   const sb = getSupabase();
@@ -18,26 +21,41 @@ function requireClient() {
   return { sb, user };
 }
 
-/* Importiert die geparsten ICS-Termine (aus ics.js). Alle Zeilen dieses
-   Vorgangs bekommen dieselbe import_batch_id. Gibt die Zusammenfassung
-   { tage, termine } für die Anzeige zurück. */
-export async function importEvents(events) {
+/* Importiert die geparsten ICS-Termine in den bestätigten, bereinigten
+   Zeitraum [von, bis] (je "YYYY-MM-DD", inklusiv). Ablauf (Spec 2.3):
+     1) Kompletten bisherigen Stand sichern + Import protokollieren (für Undo)
+     2) Alle bestehenden Termine im Zeitraum löschen ("bereinigen")
+     3) Die neuen Termine dieses Zeitraums einfügen ("neu schreiben")
+   Termine außerhalb des bestätigten Zeitraums werden bewusst ignoriert, damit
+   der Grundsatz "der bestätigte Zeitraum wird komplett ersetzt" konsequent
+   gilt. Gibt die Zusammenfassung { tage, termine } für die Anzeige zurück. */
+export async function importEventsInRange(events, von, bis, filename) {
   const { sb, user } = requireClient();
-  if (!events.length) return { tage: 0, termine: 0 };
 
-  const batchId = crypto.randomUUID();
-  const tage = [...new Set(events.map((e) => e.datum))];
+  // 1) Sicherung des GESAMTEN bisherigen Standes + Protokoll (Basis fürs Undo).
+  const snapshot = await snapshotDienstplan();
+  const inRange = events.filter((e) => e.datum >= von && e.datum <= bis);
+  await logImport({
+    kind: "ics",
+    filename: filename || null,
+    rangeVon: von,
+    rangeBis: bis,
+    eventCount: inRange.length,
+    prevSnapshot: snapshot,
+  });
 
-  // 1) Alle bestehenden Termine der betroffenen Tage löschen (nur eigene Zeilen).
+  // 2) Zeitraum bereinigen: alle bestehenden Termine darin löschen.
   const { error: delError } = await sb
     .from("dienstplan_events")
     .delete()
     .eq("user_id", user.id)
-    .in("datum", tage);
-  if (delError) throw new Error("Löschen alter Termine fehlgeschlagen: " + delError.message);
+    .gte("datum", von)
+    .lte("datum", bis);
+  if (delError) throw new Error("Bereinigen des Zeitraums fehlgeschlagen: " + delError.message);
 
-  // 2) Alle neuen Termine einfügen.
-  const rows = events.map((e) => ({
+  // 3) Neue Termine des Zeitraums einfügen (alle mit derselben import_batch_id).
+  const batchId = crypto.randomUUID();
+  const rows = inRange.map((e) => ({
     user_id: user.id,
     datum: e.datum,
     start_zeit: e.start_zeit,
@@ -45,10 +63,13 @@ export async function importEvents(events) {
     titel: e.titel,
     import_batch_id: batchId,
   }));
-  const { error: insError } = await sb.from("dienstplan_events").insert(rows);
-  if (insError) throw new Error("Einfügen neuer Termine fehlgeschlagen: " + insError.message);
+  if (rows.length) {
+    const { error: insError } = await sb.from("dienstplan_events").insert(rows);
+    if (insError) throw new Error("Einfügen neuer Termine fehlgeschlagen: " + insError.message);
+  }
 
-  return { tage: tage.length, termine: rows.length };
+  const tage = new Set(rows.map((r) => r.datum)).size;
+  return { tage, termine: rows.length };
 }
 
 /* Lädt alle Termine im Datumsbereich [von, bis] (je "YYYY-MM-DD", inklusiv),

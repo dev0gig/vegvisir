@@ -814,7 +814,38 @@ body.dropping .drop-veil { display: grid; }
    mit 5 Spalten) — auf dem Handy weiterhin volle Breite. */
 .tool-window.as-sheet[data-tool-id="dienstplan"] { width: min(980px, 100%); }
 
-.dp { display: flex; flex-direction: column; gap: 12px; padding: 14px; }
+.dp { position: relative; display: flex; flex-direction: column; gap: 12px; padding: 14px; }
+
+/* ---- ICS-Import-Dialog: Bestätigung des Bereinigungs-Zeitraums ---- */
+.dp-dialog-back {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; border-radius: inherit;
+  background: rgba(6, 10, 20, 0.6); backdrop-filter: blur(2px);
+}
+.dp-dialog {
+  width: 100%; max-width: 380px;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 18px; border-radius: var(--radius);
+  background: var(--ink-850); border: 1px solid var(--glass-border); box-shadow: var(--shadow);
+}
+.dp-dialog-title { font-size: 1rem; font-weight: 600; color: var(--steel-100); }
+.dp-dialog-info { font-size: 0.88rem; color: var(--steel-300); }
+.dp-dialog-info strong { color: var(--steel-100); }
+.dp-dialog-range { display: flex; gap: 10px; flex-wrap: wrap; }
+.dp-dialog-range label {
+  flex: 1; min-width: 130px; display: flex; flex-direction: column; gap: 4px;
+  font-size: 0.75rem; color: var(--steel-400);
+}
+.dp-dialog-range input {
+  padding: 8px 10px; border-radius: var(--radius-sm);
+  background: var(--glass); border: 1px solid var(--glass-border);
+  color: var(--steel-100); font-size: 0.85rem;
+}
+.dp-dialog-hint { font-size: 0.75rem; color: var(--steel-500); }
+.dp-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.dp-dialog-actions .dp-btn { width: auto; padding: 8px 14px; }
+.dp-dialog-ok { color: var(--teal); border-color: rgba(111, 214, 207, 0.35); background: rgba(111, 214, 207, 0.10); }
 
 .dp-toolbar {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
