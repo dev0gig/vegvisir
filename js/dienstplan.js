@@ -6,6 +6,7 @@
 
 import { parseIcs } from "./ics.js";
 import { importEventsInRange, fetchEvents } from "./dienstplan-db.js";
+import { syncGoogleRange } from "./google-sync.js";
 import { esc } from "./dom.js";
 
 const VIEW_KEY = "vegvisir.tool.dienstplan"; // gemerkte Ansicht (woche/monat)
@@ -302,6 +303,16 @@ export function renderDienstplan(container, api) {
       // Zum Anfang des bereinigten Zeitraums springen, damit das Ergebnis sofort sichtbar ist.
       anchor = fromIso(range.von);
       await refresh();
+      // Google-Spiegel des Zeitraums nachziehen (nur wenn Google verbunden ist;
+      // sonst bleibt es still beim normalen Import-Ergebnis).
+      try {
+        const g = await syncGoogleRange(range.von, range.bis);
+        showMsg(`${termine} Termine importiert — Google-Kalender aktualisiert (${g.geschrieben} Termine).`, "ok");
+      } catch (err) {
+        if (err.code !== "not_connected") {
+          showMsg("Import ok, aber Google-Sync fehlgeschlagen: " + (err.message || ""), "warn");
+        }
+      }
     } catch (err) {
       showMsg(err.message || "Import fehlgeschlagen.", "warn");
     }
