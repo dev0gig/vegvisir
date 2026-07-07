@@ -803,11 +803,19 @@ body.dropping::after { background: rgba(111,214,207,0.06); }
 @media (min-width: 860px) { .section-title { max-width: 880px; } }
 .drop-veil {
   position: fixed; inset: 0; z-index: 60; display: none;
-  place-items: center; pointer-events: none;
-  background: rgba(4,7,14,0.6); backdrop-filter: blur(4px);
-  color: var(--teal); font-family: "Cinzel", serif; letter-spacing: 0.1em; font-size: 1.2rem;
+  place-items: center; pointer-events: none; padding: 24px;
+  background: rgba(4, 7, 14, 0.62); backdrop-filter: blur(4px);
 }
 body.dropping .drop-veil { display: grid; }
+.drop-card {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  width: min(460px, 90%); padding: 40px 28px;
+  border: 2px dashed rgba(111, 214, 207, 0.5); border-radius: var(--radius);
+  background: rgba(16, 24, 42, 0.55); text-align: center;
+}
+.drop-ico { width: 44px; height: 44px; color: var(--teal); }
+.drop-title { font-size: 1.15rem; font-weight: 600; color: var(--steel-100); }
+.drop-sub { font-size: 0.88rem; color: var(--steel-400); }
 
 /* ============ DIENSTPLAN ============ */
 /* Der Kalender braucht mehr Breite als die übrigen Sheets (Monatsraster
