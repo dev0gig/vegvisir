@@ -505,6 +505,8 @@ body {
     border-radius: var(--radius); border-bottom: var(--line);
   }
 }
+/* Der Dienstplan braucht mehr Platz (Monatsraster mit 5 Spalten). */
+.tool-window.as-sheet[data-tool-id="dienstplan"] { width: min(980px, 100%); }
 
 /* ============ RECHNER ============ */
 .calc { display: flex; flex-direction: column; height: 100%; padding: 12px; gap: 10px; outline: none; }
@@ -789,16 +791,21 @@ body.dropping .drop-veil { display: grid; }
   text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;
 }
 
-/* Monatsansicht: Raster Mo–Fr */
-.dp-month { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+/* Monatsansicht: Raster Mo–Fr. minmax(0, 1fr) statt 1fr, damit lange
+   Termin-Titel die Spalten nicht aufsprengen — sie werden stattdessen
+   mit … abgeschnitten und das Raster passt sich immer der Breite an. */
+.dp-month { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .dp-m-head {
   text-align: center; font-size: 0.62rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.12em; color: var(--color-ink-mute);
   padding: 4px 0;
 }
 .dp-m-cell {
-  min-height: 74px; padding: 6px; border: var(--line); border-radius: var(--radius-sm);
+  /* Zellhöhe wächst mit dem Bildschirm mit, statt fix zu sein */
+  min-height: clamp(56px, 9dvh, 96px);
+  padding: 6px; border: var(--line); border-radius: var(--radius-sm);
   background: var(--color-paper);
+  min-width: 0;
 }
 .dp-m-cell.out { border-color: transparent; background: transparent; }
 .dp-m-cell.today { background: var(--color-sun-soft); }
@@ -813,8 +820,11 @@ body.dropping .drop-veil { display: grid; }
 .dp-m-cell .dp-ev-titel { font-size: 0.7rem; }
 
 @media (max-width: 560px) {
-  .dp-m-cell { min-height: 56px; padding: 4px; }
+  .dp-month { gap: 4px; }
+  .dp-m-cell { min-height: clamp(48px, 8dvh, 64px); padding: 4px; }
+  .dp-m-cell .dp-ev { padding: 2px 6px; }
   .dp-m-cell .dp-ev-titel { display: none; }
+  .dp-m-cell .dp-ev-zeit { font-size: 0.62rem; }
   .dp-range { order: 3; flex-basis: 100%; }
 }
 
