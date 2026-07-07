@@ -199,6 +199,9 @@
   .hidden {
     display: none;
   }
+  .table {
+    display: table;
+  }
   .transform {
     transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
   }
@@ -962,6 +965,16 @@ body {
   background: var(--color-sun-soft);
 }
 .tw-action.danger:hover {
+  background: var(--color-wiwo);
+}
+.tw-action:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.tw-action.g-on {
+  background: var(--color-flexi);
+}
+.tw-action.g-off {
   background: var(--color-wiwo);
 }
 .tw-close i, .tw-close svg, .tw-action i, .tw-action svg {

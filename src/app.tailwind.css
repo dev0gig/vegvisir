@@ -472,6 +472,10 @@ body {
 .tw-action { background: var(--color-paper); }
 .tw-action:hover { background: var(--color-sun-soft); }
 .tw-action.danger:hover { background: var(--color-wiwo); }
+.tw-action:disabled { opacity: 0.45; cursor: default; }
+/* Google-Status-Wolke im Dienstplan: grünlich = verbunden, lachs = getrennt */
+.tw-action.g-on { background: var(--color-flexi); }
+.tw-action.g-off { background: var(--color-wiwo); }
 .tw-close i, .tw-close svg, .tw-action i, .tw-action svg { width: 16px; height: 16px; }
 .tw-body { flex: 1 1 auto; min-height: 0; overflow: auto; }
 

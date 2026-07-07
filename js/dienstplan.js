@@ -1,12 +1,13 @@
 /* ============ DIENSTPLAN (Kalender-UI) ============ */
 /* Wochen- und Monatsansicht für die importierten Dienstplan-Termine.
    Es werden nur Werktage (Montag–Freitag) angezeigt, weil der Dienstplan
-   keine Wochenend-Dienste enthält. Der Import passiert über einen Knopf in
-   der Titelleiste: ICS-Datei wählen → parsen → in Supabase mergen. */
+   keine Wochenend-Dienste enthält. Importiert wird über /import oder
+   Drag&Drop einer ICS-Datei; in der Titelleiste sitzen stattdessen die
+   Google-Wolke (Verbindungsstatus, Klick = anmelden) und der Sync-Knopf. */
 
 import { parseIcs } from "./ics.js";
 import { importEventsInRange, fetchEvents } from "./dienstplan-db.js";
-import { syncGoogleRange } from "./google-sync.js";
+import { syncGoogleRange, fullGoogleSync, googleStatus, connectGoogle } from "./google-sync.js";
 import { esc } from "./dom.js";
 
 const VIEW_KEY = "vegvisir.tool.dienstplan"; // gemerkte Ansicht (woche/monat)
@@ -336,8 +337,67 @@ export function renderDienstplan(container, api) {
     fileInput.value = ""; // gleiche Datei erneut wählbar
     if (f) importFile(f);
   });
+
+  /* ---- Titelleiste: Google-Wolke (Status) + Sync-Knopf ----
+     Die Wolke zeigt, ob Google verbunden ist (gefüllt/durchgestrichen);
+     ein Klick darauf startet bei fehlender Verbindung die Anmeldung.
+     Der Sync-Knopf schreibt den kompletten Google-Kalender aus Supabase neu. */
+  let gConnected = null; // null = noch unbekannt
+  let gKalender = "Google-Kalender";
+  let gSyncing = false;
+  let statusBtn = null, syncBtn = null;
+
+  function paintGoogle() {
+    if (!statusBtn) return;
+    statusBtn.classList.toggle("g-on", gConnected === true);
+    statusBtn.classList.toggle("g-off", gConnected === false);
+    statusBtn.innerHTML = `<i data-lucide="${gConnected ? "cloud" : "cloud-off"}"></i>`;
+    statusBtn.title = gConnected
+      ? `Google verbunden — Kalender „${gKalender}“`
+      : "Google nicht verbunden — klicken zum Anmelden";
+    statusBtn.setAttribute("aria-label", statusBtn.title);
+    if (window.lucide) lucide.createIcons();
+  }
+
+  async function onGoogleBadge() {
+    if (gConnected) {
+      showMsg(`Google ist verbunden — Termine landen im Kalender „${gKalender}“.`, "ok");
+      return;
+    }
+    try { await connectGoogle(); } // leitet zur Google-Anmeldung weiter
+    catch (err) { showMsg(err.message || "Google-Anmeldung fehlgeschlagen.", "warn"); }
+  }
+
+  async function doGoogleSync() {
+    if (gSyncing) return;
+    if (gConnected === false) {
+      showMsg("Google ist nicht verbunden — auf die Wolke klicken zum Anmelden.", "warn");
+      return;
+    }
+    gSyncing = true;
+    if (syncBtn) syncBtn.disabled = true;
+    showMsg("Gleiche mit Google ab …");
+    try {
+      const g = await fullGoogleSync();
+      gConnected = true;
+      showMsg(`Google-Kalender „${g.kalender}“ neu geschrieben (${g.geschrieben} Termine).`, "ok");
+    } catch (err) {
+      if (err.code === "not_connected" || err.code === "reconnect") gConnected = false;
+      showMsg(err.message || "Google-Sync fehlgeschlagen.", "warn");
+    } finally {
+      gSyncing = false;
+      if (syncBtn) syncBtn.disabled = false;
+      if (!closed) paintGoogle();
+    }
+  }
+
   if (api && api.addHeaderAction) {
-    api.addHeaderAction({ icon: "upload", title: "ICS-Datei importieren", onClick: () => fileInput.click() });
+    statusBtn = api.addHeaderAction({ icon: "cloud", title: "Google-Verbindung wird geprüft …", onClick: onGoogleBadge });
+    syncBtn = api.addHeaderAction({ icon: "refresh-cw", title: "Mit Google-Kalender abgleichen", onClick: doGoogleSync });
+    googleStatus()
+      .then((s) => { gConnected = !!s.connected; if (s.kalender) gKalender = s.kalender; })
+      .catch(() => { gConnected = false; })
+      .finally(() => { if (!closed) paintGoogle(); });
   }
 
   if (window.lucide) lucide.createIcons();
