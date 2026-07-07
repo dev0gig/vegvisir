@@ -69,7 +69,7 @@ Die Secrets gelten sofort — die Funktion muss nicht neu deployt werden.
 
 ## 6. In vegvisir verbinden und testen
 
-1. vegvisir öffnen, in der Suchleiste **`/google verbinden`** ausführen.
+1. vegvisir öffnen, in der Suchleiste **`/google login`** ausführen.
 2. Google-Konto wählen, die Warnung per **Erweitert → öffnen** bestätigen,
    Kalender-Zugriff **erlauben**.
 3. Du landest automatisch zurück in vegvisir; es erscheint

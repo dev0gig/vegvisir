@@ -28,7 +28,7 @@ export const COMMANDS = [
   { cmd: "/calc",     arg: false, live: false, icon: "calculator",      desc: "Taschenrechner-Fenster öffnen" },
   { cmd: "/zeit",     arg: false, live: false, icon: "clock",           desc: "Dienstzeiten-Rechner öffnen" },
   { cmd: "/sync",     arg: false, live: false, icon: "refresh-cw",      desc: "Mit der Cloud abgleichen (und Google spiegeln)" },
-  { cmd: "/google",   arg: true,  live: false, icon: "calendar-check",  desc: "Google-Kalender: verbinden · sync · trennen · status" },
+  { cmd: "/google",   arg: true,  live: false, icon: "calendar-check",  desc: "Google-Kalender: login · sync · trennen · status" },
   { cmd: "/import",   arg: false, live: false, icon: "upload",          desc: "Datei importieren (JSON oder ICS)" },
   { cmd: "/undo",     arg: true,  live: false, icon: "undo-2",          desc: "Letzten Import rückgängig machen" },
   { cmd: "/logout",   arg: false, live: false, icon: "log-out",         desc: "Abmelden" },
@@ -122,7 +122,7 @@ export function previewCommand(text) {
     // Sichtbarer Wegweiser: /google nimmt ein Argument, darum führt der erste
     // Enter nur zur Vervollständigung — ohne Hinweis sähe das nach "nichts
     // passiert" aus.
-    showPanel('<div class="cmd-hint">Weiter tippen: <strong>verbinden</strong> · <strong>sync</strong> · <strong>trennen</strong> — oder Enter für den Status.</div>');
+    showPanel('<div class="cmd-hint">Weiter tippen: <strong>login</strong> · <strong>sync</strong> · <strong>trennen</strong> — oder Enter für den Status.</div>');
     return;
   }
   if (cmd === "/k") {
@@ -236,7 +236,7 @@ export async function runCommand(text) {
     case "/google": {
       const a = arg.trim().toLowerCase();
       try {
-        if (a === "verbinden" || a === "an" || a === "connect") {
+        if (a === "login" || a === "verbinden" || a === "an" || a === "connect") {
           showPanel('<div class="cmd-hint">Leite zur Google-Anmeldung weiter …</div>');
           await connectGoogle(); // leitet zur Zustimmungsseite; Rückkehr verarbeitet main.js
         } else if (a === "trennen" || a === "aus") {
@@ -250,7 +250,7 @@ export async function runCommand(text) {
           const s = await googleStatus();
           flash(s.connected
             ? `Google verbunden — Kalender „${s.kalender}“. Befehle: /google sync · trennen`
-            : "Google nicht verbunden — „/google verbinden“ ausführen.", s.connected ? "ok" : "warn");
+            : "Google nicht verbunden — „/google login“ ausführen.", s.connected ? "ok" : "warn");
         }
       } catch (err) {
         flash(err.message || "Google-Befehl fehlgeschlagen.", "warn");

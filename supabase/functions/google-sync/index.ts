@@ -308,7 +308,7 @@ Deno.serve(async (req: Request) => {
         .eq("user_id", user.id)
         .maybeSingle();
       if (!row) {
-        return fail("Google ist nicht verbunden — in der Suchleiste „/google verbinden“ ausführen.", "not_connected");
+        return fail("Google ist nicht verbunden — in der Suchleiste „/google login“ ausführen.", "not_connected");
       }
 
       let token: string;
@@ -318,7 +318,7 @@ Deno.serve(async (req: Request) => {
         if (err instanceof CodeError && err.code === "reconnect") {
           // Widerrufene Verbindung serverseitig aufräumen.
           await admin.from("user_google_tokens").delete().eq("user_id", user.id);
-          return fail("Google-Verbindung abgelaufen — bitte „/google verbinden“ neu ausführen.", "reconnect");
+          return fail("Google-Verbindung abgelaufen — bitte „/google login“ neu ausführen.", "reconnect");
         }
         throw err;
       }
