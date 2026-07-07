@@ -18,6 +18,22 @@ befüllt ausschließlich per JSON-Import.
   rendert die App zuerst den lokalen `localStorage`-Stand und holt danach im
   Hintergrund eine ggf. neuere Cloud-Version.
 
+## Design / CSS bauen (Tailwind)
+
+Das Design (Neo-Minimalismus: Creme-Flächen, Anthrazit-Konturen, Pastell-
+Kategorien, Gelb-Akzent) lebt als Quelle in **`src/app.tailwind.css`** und wird
+mit Tailwind v4 zu **`styles.css`** kompiliert. Die fertige `styles.css` ist
+eingecheckt — Vercel braucht keinen Build-Schritt.
+
+```
+npm install        # einmalig (holt Tailwind)
+npm run css        # src/app.tailwind.css → styles.css
+npm run css:watch  # dito, baut bei jeder Änderung neu
+```
+
+**Wichtig:** Nie `styles.css` direkt bearbeiten, immer die Quelle unter `src/`
+ändern und neu bauen (sonst überschreibt der nächste Build die Änderung).
+
 ## Konfiguration (Supabase)
 
 Die Zugangsdaten stehen in **`js/config.js`** (`SUPABASE_URL`,

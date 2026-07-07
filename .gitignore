@@ -1,2 +1,5 @@
 # Quell-Material, das nicht ausgeliefert werden muss
 assets/IconKitchen-Output.zip
+
+# Node (nur fürs Tailwind-Build gebraucht)
+node_modules/

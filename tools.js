@@ -373,7 +373,8 @@ window.VEG_TOOLS = [
         $("[data-pct]").textContent = pct + "%";
         const fill = $("[data-fill]");
         fill.style.width = pct + "%";
-        fill.style.background = pct >= 100 ? "#6fd6a0" : (pct >= Math.round((minMs / maxMs) * 100) ? "#7fd6b0" : "var(--teal)");
+        // Füllfarbe der Fortschritts-Kapsel: Gelb bis zum Minimum, dann Salbei-Töne.
+        fill.style.background = pct >= 100 ? "#A3C9A8" : (pct >= Math.round((minMs / maxMs) * 100) ? "#C9DECB" : "#F5C84C");
 
         const openMs = state.openPause ? (now - timeToMs(state.openPause)) : 0;
         const etMinMs = now + Math.max(0, remMin) + openMs;
