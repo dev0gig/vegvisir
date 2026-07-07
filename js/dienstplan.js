@@ -25,6 +25,18 @@ const fmtDe = (iso) => fromIso(iso).toLocaleDateString("de-AT", { day: "2-digit"
 const WOCHENTAGE = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
 const WT_KURZ = ["Mo", "Di", "Mi", "Do", "Fr"];
 
+/* Dienst-Kategorie aus dem Termin-Titel ableiten — bestimmt die gedeckte
+   Pastellfarbe (Spec Abschnitt 7): WiWo = Lachs, Erdberg = Salbei,
+   Spittelau = Flieder, Flexi/Home Office = sanftes Grün, sonst neutral. */
+function catOf(titel) {
+  const t = String(titel || "").toLowerCase();
+  if (/wiwo|wiener\s*wohnen/.test(t)) return "wiwo";
+  if (/erdberg/.test(t)) return "erdberg";
+  if (/spittelau/.test(t)) return "spittelau";
+  if (/flexi|home\s*office|homeoffice/.test(t)) return "flexi";
+  return "dienst";
+}
+
 /* Damit eine ICS-Datei auch von außen (Slash-Befehl /import, Drag&Drop)
    importiert werden kann: Ist das Dienstplan-Werkzeug offen, übernimmt es die
    Datei sofort; sonst wird sie gemerkt und beim Öffnen verarbeitet. */
@@ -43,24 +55,31 @@ export function renderDienstplan(container, api) {
 
   container.innerHTML = `
     <div class="dp">
-      <div class="dp-toolbar">
-        <div class="dp-nav">
-          <button class="dp-btn" data-prev aria-label="Zurück"><i data-lucide="chevron-left"></i></button>
-          <button class="dp-btn dp-today" data-today>Heute</button>
-          <button class="dp-btn" data-next aria-label="Weiter"><i data-lucide="chevron-right"></i></button>
+      <div class="dp-head cat-dienst" data-head>
+        <div class="dp-toolbar">
+          <div class="dp-nav">
+            <button class="dp-btn" data-prev aria-label="Zurück"><i data-lucide="chevron-left"></i></button>
+            <button class="dp-btn dp-today" data-today>Heute</button>
+            <button class="dp-btn" data-next aria-label="Weiter"><i data-lucide="chevron-right"></i></button>
+          </div>
+          <div class="dp-range" data-range></div>
+          <div class="dp-switch" role="tablist">
+            <button class="dp-sw" data-view="woche" role="tab">Woche</button>
+            <button class="dp-sw" data-view="monat" role="tab">Monat</button>
+          </div>
         </div>
-        <div class="dp-range" data-range></div>
-        <div class="dp-switch" role="tablist">
-          <button class="dp-sw" data-view="woche" role="tab">Woche</button>
-          <button class="dp-sw" data-view="monat" role="tab">Monat</button>
-        </div>
+        <div class="dp-strip" data-strip hidden></div>
       </div>
-      <div class="dp-msg" data-msg hidden></div>
-      <div class="dp-cal" data-cal></div>
+      <div class="dp-body">
+        <div class="dp-msg" data-msg hidden></div>
+        <div class="dp-cal" data-cal></div>
+      </div>
     </div>
     <input type="file" accept=".ics,text/calendar" hidden data-icsfile />`;
 
   const $ = (s) => container.querySelector(s);
+  const headEl = $("[data-head]");
+  const stripEl = $("[data-strip]");
   const msgEl = $("[data-msg]");
   const calEl = $("[data-cal]");
   const fileInput = $("[data-icsfile]");
@@ -93,13 +112,42 @@ export function renderDienstplan(container, api) {
     return anchor.toLocaleDateString("de-AT", { month: "long", year: "numeric" });
   }
 
-  /* ---- Termine eines Tages als kleine Blöcke (chronologisch aus der DB) ---- */
+  /* ---- Termine eines Tages als Kapseln in der Kategoriefarbe ---- */
   function eventsHtml(list) {
     return list.map((e) => `
-      <div class="dp-ev">
+      <div class="dp-ev cat-${catOf(e.titel)}">
         <span class="dp-ev-zeit">${fmtZeit(e.start_zeit)}–${fmtZeit(e.end_zeit)}</span>
         <span class="dp-ev-titel">${esc(e.titel)}</span>
       </div>`).join("");
+  }
+
+  /* ---- Wochenleiste (nur Wochenansicht) + Header-Zone einfärben ----
+     Die Leiste zeigt Mo–Fr der angezeigten Woche; der ausgewählte Tag als
+     schwarze Kapsel (weiße Zahl). Ein Klick wählt den Tag aus — die farbige
+     Header-Zone übernimmt dann die Kategoriefarbe seines ersten Dienstes. */
+  function renderStrip(byDate) {
+    const selIso = toIso(anchor);
+    if (view !== "woche") {
+      stripEl.hidden = true;
+    } else {
+      const mo = mondayOf(anchor);
+      const heute = toIso(new Date());
+      stripEl.hidden = false;
+      stripEl.innerHTML = Array.from({ length: 5 }, (_, i) => {
+        const d = addDays(mo, i);
+        const iso = toIso(d);
+        return `
+          <button class="dp-wd${iso === selIso ? " active" : ""}${iso === heute ? " is-today" : ""}"
+                  data-iso="${iso}" aria-label="${WOCHENTAGE[i]}">
+            <span class="dp-wd-name">${WT_KURZ[i]}</span>
+            <span class="dp-wd-num">${d.getDate()}</span>
+          </button>`;
+      }).join("");
+      stripEl.querySelectorAll(".dp-wd").forEach((b) =>
+        b.addEventListener("click", () => { anchor = fromIso(b.dataset.iso); refresh(); }));
+    }
+    const list = byDate.get(selIso) || [];
+    headEl.className = "dp-head cat-" + (list.length ? catOf(list[0].titel) : "dienst");
   }
 
   /* ---- Wochenansicht: fünf Tageskarten untereinander (Mo–Fr) ---- */
@@ -171,6 +219,7 @@ export function renderDienstplan(container, api) {
       if (!byDate.has(r.datum)) byDate.set(r.datum, []);
       byDate.get(r.datum).push(r);
     });
+    renderStrip(byDate);
     if (view === "woche") renderWoche(byDate); else renderMonat(byDate);
   }
 
