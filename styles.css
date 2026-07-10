@@ -1451,8 +1451,11 @@ body {
   font-weight: 600;
   transition: background 0.15s;
 }
-.pdx-drop:hover {
+.pdx-drop:hover, .pdx-drop.dragover {
   background: var(--color-sun-soft);
+}
+.pdx-drop.dragover {
+  border-style: solid;
 }
 .pdx-drop i {
   width: 20px;
@@ -1461,35 +1464,6 @@ body {
 }
 .pdx-drop span {
   overflow-wrap: anywhere;
-}
-.pdx-card {
-  background: var(--color-paper);
-  border: var(--line);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.pdx-check {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 0.84rem;
-  cursor: pointer;
-}
-.pdx-check input {
-  margin-top: 3px;
-  accent-color: var(--color-ink);
-  width: 16px;
-  height: 16px;
-  flex: none;
-}
-.pdx-check small {
-  display: block;
-  color: var(--color-ink-mute);
-  font-size: 0.72rem;
-  margin-top: 2px;
 }
 .pdx-btn {
   display: inline-flex;
@@ -1568,19 +1542,6 @@ body {
 }
 .pdx-err:empty {
   display: none;
-}
-.pdx-ask {
-  border-color: var(--color-err);
-  gap: 12px;
-}
-.pdx-ask p {
-  font-size: 0.84rem;
-  line-height: 1.5;
-}
-.pdx-ask-btns {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
 }
 .home-fav-title {
   display: block;

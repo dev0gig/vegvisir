@@ -1,35 +1,25 @@
 /* ============ PDF DUPLEX-FIXER (UI) ============
    Oberfläche für js/pdfDuplexFixer.js (reine Logik). Wird — wie der
    Dienstplan — erst beim Öffnen des Werkzeugs dynamisch nachgeladen,
-   damit das 500-KB-pdf-lib-Bundle den App-Start nicht bremst. */
+   damit das pdf-lib-Bundle den App-Start nicht bremst.
 
-import { interleavePages, OddPageCountError } from "./pdfDuplexFixer.js";
+   Bewusst so einfach wie möglich: PDF auswählen oder hineinziehen,
+   ein Knopf, fertig. Keine Optionen. */
+
+import { interleavePages } from "./pdfDuplexFixer.js";
 
 export function renderPdfDuplex(container) {
   container.innerHTML = `
     <div class="pdx">
       <p class="pdx-intro">Für Scanner ohne Duplex: zuerst alle <b>Vorderseiten</b> scannen,
         dann den Stapel wenden und alle <b>Rückseiten</b> — die letzte zuerst.
-        Dieses Werkzeug sortiert die Seiten wieder in die richtige Reihenfolge.</p>
+        Dieses Werkzeug bringt die Seiten wieder in die richtige Reihenfolge.</p>
 
-      <label class="pdx-drop">
+      <label class="pdx-drop" data-drop>
         <i data-lucide="file-up"></i>
-        <span data-filelabel>PDF auswählen …</span>
+        <span data-filelabel>PDF hierher ziehen oder auswählen …</span>
         <input type="file" accept=".pdf,application/pdf" data-file hidden>
       </label>
-
-      <div class="pdx-card">
-        <label class="pdx-check">
-          <input type="checkbox" data-removeblank>
-          <span>Digitale Leerseiten löschen
-            <small>erkennt nur strukturell leere Seiten, keine weiß gescannten</small></span>
-        </label>
-        <label class="pdx-check">
-          <input type="checkbox" data-addblank>
-          <span>Leere Seite anfügen, falls die Seitenzahl ungerade ist
-            <small>sonst wird bei ungerader Seitenzahl nachgefragt</small></span>
-        </label>
-      </div>
 
       <button class="pdx-btn primary pdx-run" data-run disabled>Seiten sortieren</button>
 
@@ -40,32 +30,21 @@ export function renderPdfDuplex(container) {
 
       <div class="pdx-err" data-err role="alert"></div>
 
-      <div class="pdx-card pdx-ask" data-ask hidden>
-        <p data-asktext></p>
-        <div class="pdx-ask-btns">
-          <button class="pdx-btn primary" data-askyes>Ja, Leerseite anfügen</button>
-          <button class="pdx-btn" data-askno>Abbrechen</button>
-        </div>
-      </div>
-
       <a class="pdx-btn success pdx-download" data-download hidden>
         <i data-lucide="download"></i><span data-downloadlabel></span>
       </a>
     </div>`;
 
   const $ = (s) => container.querySelector(s);
+  const dropZone = $("[data-drop]");
   const fileInput = $("[data-file]");
   const fileLabel = $("[data-filelabel]");
-  const removeBlankCb = $("[data-removeblank]");
-  const addBlankCb = $("[data-addblank]");
   const runBtn = $("[data-run]");
   const progressWrap = $("[data-progresswrap]");
   const statusEl = $("[data-status]");
   const pctEl = $("[data-pct]");
   const fillEl = $("[data-fill]");
   const errEl = $("[data-err]");
-  const askCard = $("[data-ask]");
-  const askText = $("[data-asktext]");
   const downloadLink = $("[data-download]");
 
   let file = null;    // aktuell gewählte PDF-Datei
@@ -74,16 +53,14 @@ export function renderPdfDuplex(container) {
 
   const fmtSize = (b) => b < 1048576 ? Math.round(b / 1024) + " KB" : (b / 1048576).toFixed(1) + " MB";
 
-  // Eingaben während der Verarbeitung sperren (keine Doppelverarbeitung).
   const setBusy = (on) => {
     busy = on;
-    [fileInput, removeBlankCb, addBlankCb, runBtn].forEach((el) => { el.disabled = on; });
-    if (!on) runBtn.disabled = !file;
+    fileInput.disabled = on;
+    runBtn.disabled = on || !file;
   };
 
   const resetOutput = () => {
     errEl.textContent = "";
-    askCard.hidden = true;
     downloadLink.hidden = true;
     progressWrap.hidden = true;
     if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
@@ -102,23 +79,45 @@ export function renderPdfDuplex(container) {
     }
   };
 
-  fileInput.addEventListener("change", () => {
-    const f = fileInput.files && fileInput.files[0];
+  // Eine PDF-Datei übernehmen — egal ob per Auswahl oder Drag & Drop.
+  const setFile = (f) => {
     resetOutput();
-    if (!f) { file = null; fileLabel.textContent = "PDF auswählen …"; runBtn.disabled = true; return; }
+    if (!f) { file = null; fileLabel.textContent = "PDF hierher ziehen oder auswählen …"; runBtn.disabled = true; return; }
     if (!/\.pdf$/i.test(f.name) && f.type !== "application/pdf") {
       file = null; fileInput.value = "";
-      fileLabel.textContent = "PDF auswählen …";
+      fileLabel.textContent = "PDF hierher ziehen oder auswählen …";
       runBtn.disabled = true;
-      errEl.textContent = "Bitte eine PDF-Datei auswählen — andere Dateitypen kann dieses Werkzeug nicht sortieren.";
+      errEl.textContent = "Bitte eine PDF-Datei wählen — andere Dateitypen kann dieses Werkzeug nicht sortieren.";
       return;
     }
     file = f;
     fileLabel.textContent = f.name + " (" + fmtSize(f.size) + ")";
     runBtn.disabled = false;
+  };
+
+  fileInput.addEventListener("change", () => setFile(fileInput.files && fileInput.files[0]));
+
+  // Drag & Drop direkt auf die Ablage-Fläche. stopPropagation, damit die
+  // globale Datei-Ablage der App (JSON/ICS) nicht dazwischenfunkt.
+  ["dragenter", "dragover"].forEach((ev) =>
+    dropZone.addEventListener(ev, (e) => {
+      if (busy) return;
+      e.preventDefault(); e.stopPropagation();
+      dropZone.classList.add("dragover");
+    }));
+  ["dragleave", "dragend"].forEach((ev) =>
+    dropZone.addEventListener(ev, (e) => {
+      e.preventDefault(); e.stopPropagation();
+      dropZone.classList.remove("dragover");
+    }));
+  dropZone.addEventListener("drop", (e) => {
+    e.preventDefault(); e.stopPropagation();
+    dropZone.classList.remove("dragover");
+    if (busy) return;
+    setFile(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]);
   });
 
-  async function run(addBlankConfirmed) {
+  async function run() {
     if (!file || busy) return;
     resetOutput();
     setBusy(true);
@@ -126,8 +125,6 @@ export function renderPdfDuplex(container) {
     try {
       const buf = await file.arrayBuffer();
       const bytes = await interleavePages(buf, {
-        removeBlankPages: removeBlankCb.checked,
-        addBlankPageIfOdd: addBlankConfirmed || addBlankCb.checked,
         onProgress: (done, total) => showProgress(`Sortiere Seite ${done} von ${total} …`, done, total),
       });
 
@@ -141,22 +138,13 @@ export function renderPdfDuplex(container) {
       showProgress("Fertig — Seiten sortiert.", 1, 1);
     } catch (e) {
       progressWrap.hidden = true;
-      if (e instanceof OddPageCountError) {
-        // Nicht still eine Seite dazumogeln — erst nachfragen.
-        askText.textContent = `Das PDF hat ${e.pageCount} Seiten (ungerade Anzahl). ` +
-          "Vermutlich fehlt die leere Rückseite des letzten Blatts. Leere Seite anfügen und fortfahren?";
-        askCard.hidden = false;
-      } else {
-        errEl.textContent = e && e.message ? e.message : "Unerwarteter Fehler beim Verarbeiten des PDFs.";
-      }
+      errEl.textContent = e && e.message ? e.message : "Unerwarteter Fehler beim Verarbeiten des PDFs.";
     } finally {
       setBusy(false);
     }
   }
 
-  runBtn.addEventListener("click", () => run(false));
-  $("[data-askyes]").addEventListener("click", () => run(true));
-  $("[data-askno]").addEventListener("click", () => { askCard.hidden = true; });
+  runBtn.addEventListener("click", run);
 
   if (window.lucide) lucide.createIcons();
 
