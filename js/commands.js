@@ -27,6 +27,7 @@ export const COMMANDS = [
   { cmd: "/c",        arg: true,  live: true,  icon: "calculator",      desc: "Blitzrechner direkt in der Suchzeile" },
   { cmd: "/calc",     arg: false, live: false, icon: "calculator",      desc: "Taschenrechner-Fenster öffnen" },
   { cmd: "/zeit",     arg: false, live: false, icon: "clock",           desc: "Dienstzeiten-Rechner öffnen" },
+  { cmd: "/duplex",   arg: false, live: false, icon: "file-stack",      desc: "PDF Duplex-Fixer öffnen (Scan-Seiten sortieren)" },
   { cmd: "/sync",     arg: false, live: false, icon: "refresh-cw",      desc: "Mit der Cloud abgleichen (und Google spiegeln)" },
   { cmd: "/google",   arg: true,  live: false, icon: "calendar-check",  desc: "Google-Kalender: login · sync · trennen · status" },
   { cmd: "/import",   arg: false, live: false, icon: "upload",          desc: "Datei importieren (JSON oder ICS)" },
@@ -230,6 +231,7 @@ export async function runCommand(text) {
     case "/kalender": openToolById("dienstplan"); return { handled: true, clear: true };
     case "/calc":     openToolById("rechner");    return { handled: true, clear: true };
     case "/zeit":     openToolById("arbeitszeit"); return { handled: true, clear: true };
+    case "/duplex":   openToolById("pdfduplex");   return { handled: true, clear: true };
     case "/import":   pickFile();                  return { handled: true, clear: true };
     case "/logout":   logout();                    return { handled: true, clear: true };
     case "/sync":     await resync();              return { handled: true, clear: true };

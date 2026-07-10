@@ -453,5 +453,22 @@ window.VEG_TOOLS = [
         .catch(() => { container.innerHTML = '<div class="dp-loading">Dienstplan konnte nicht geladen werden.</div>'; });
       return () => { if (typeof cleanup === "function") cleanup(); };
     }
+  },
+
+  {
+    id: "pdfduplex",
+    name: "PDF Duplex-Fixer",
+    icon: "file-stack",
+    display: "sheet",
+    render(container, api) {
+      // UI und Logik leben als ES-Module in js/pdfduplex.js + js/pdfDuplexFixer.js.
+      // Erst beim Öffnen nachladen, weil das pdf-lib-Bundle (~500 KB) mitkommt.
+      let cleanup = null;
+      container.innerHTML = '<div class="dp-loading">Lade PDF-Werkzeug…</div>';
+      import("./js/pdfduplex.js")
+        .then((m) => { cleanup = m.renderPdfDuplex(container, api) || null; })
+        .catch(() => { container.innerHTML = '<div class="dp-loading">PDF-Werkzeug konnte nicht geladen werden.</div>'; });
+      return () => { if (typeof cleanup === "function") cleanup(); };
+    }
   }
 ];

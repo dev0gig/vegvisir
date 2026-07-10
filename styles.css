@@ -193,6 +193,12 @@
       max-width: 96rem;
     }
   }
+  .block {
+    display: block;
+  }
+  .contents {
+    display: contents;
+  }
   .grid {
     display: grid;
   }
@@ -204,6 +210,9 @@
   }
   .transform {
     transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
+  }
+  .filter {
+    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
   }
 }
 @font-face {
@@ -1413,6 +1422,166 @@ body {
 .wt-hidden {
   display: none !important;
 }
+.pdx {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 16px 18px;
+  max-width: 560px;
+  margin: 0 auto;
+  width: 100%;
+}
+.pdx-intro {
+  font-size: 0.82rem;
+  color: var(--color-ink-soft);
+  line-height: 1.5;
+}
+.pdx-drop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 22px 14px;
+  cursor: pointer;
+  text-align: center;
+  background: var(--color-paper);
+  border: 1px dashed var(--color-ink);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+.pdx-drop:hover {
+  background: var(--color-sun-soft);
+}
+.pdx-drop i {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.pdx-drop span {
+  overflow-wrap: anywhere;
+}
+.pdx-card {
+  background: var(--color-paper);
+  border: var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pdx-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.84rem;
+  cursor: pointer;
+}
+.pdx-check input {
+  margin-top: 3px;
+  accent-color: var(--color-ink);
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.pdx-check small {
+  display: block;
+  color: var(--color-ink-mute);
+  font-size: 0.72rem;
+  margin-top: 2px;
+}
+.pdx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--color-paper);
+  border: var(--line);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.pdx-btn:hover {
+  background: var(--color-sun-soft);
+}
+.pdx-btn.primary {
+  background: var(--color-sun);
+}
+.pdx-btn.primary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0 var(--color-ink);
+}
+.pdx-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+.pdx-btn.success {
+  background: var(--wt-green-bg, var(--color-flexi));
+}
+.pdx-btn i {
+  width: 18px;
+  height: 18px;
+}
+.pdx-run {
+  align-self: stretch;
+}
+.pdx-download {
+  align-self: stretch;
+}
+.pdx-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: var(--color-ink-mute);
+  margin-bottom: 6px;
+}
+.pdx-progress-meta b {
+  font-family: var(--mono);
+  color: var(--color-ink);
+}
+.pdx-bar-bg {
+  height: 14px;
+  background: var(--color-paper);
+  border: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  padding: 2px;
+}
+.pdx-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-sun);
+  transition: width 0.3s var(--ease);
+}
+.pdx-err {
+  font-size: 0.78rem;
+  color: var(--color-err);
+  min-height: 0;
+}
+.pdx-err:empty {
+  display: none;
+}
+.pdx-ask {
+  border-color: var(--color-err);
+  gap: 12px;
+}
+.pdx-ask p {
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+.pdx-ask-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 .home-fav-title {
   display: block;
   max-width: 760px;
@@ -2113,6 +2282,59 @@ body.dropping .drop-veil {
   syntax: "*";
   inherits: false;
 }
+@property --tw-blur {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-brightness {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-contrast {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-grayscale {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-hue-rotate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-invert {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-opacity {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-saturate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-sepia {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow-alpha {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+@property --tw-drop-shadow-size {
+  syntax: "*";
+  inherits: false;
+}
 @layer properties {
   @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
     *, ::before, ::after, ::backdrop {
@@ -2121,6 +2343,19 @@ body.dropping .drop-veil {
       --tw-rotate-z: initial;
       --tw-skew-x: initial;
       --tw-skew-y: initial;
+      --tw-blur: initial;
+      --tw-brightness: initial;
+      --tw-contrast: initial;
+      --tw-grayscale: initial;
+      --tw-hue-rotate: initial;
+      --tw-invert: initial;
+      --tw-opacity: initial;
+      --tw-saturate: initial;
+      --tw-sepia: initial;
+      --tw-drop-shadow: initial;
+      --tw-drop-shadow-color: initial;
+      --tw-drop-shadow-alpha: 100%;
+      --tw-drop-shadow-size: initial;
     }
   }
 }
