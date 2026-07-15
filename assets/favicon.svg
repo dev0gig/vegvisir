@@ -4,21 +4,38 @@
       <stop offset="0" stop-color="#FBEDC5"/>
       <stop offset="1" stop-color="#F5C84C"/>
     </linearGradient>
+    <filter id="ambient" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+    <filter id="contact" x="-15%" y="-15%" width="130%" height="130%">
+      <feGaussianBlur stdDeviation="2"/>
+    </filter>
   </defs>
 
   <!-- Pastell-Hintergrund mit leichtem schrägen Verlauf -->
   <rect width="512" height="512" fill="url(#bg)"/>
 
-  <!-- Kompass (Lucide "compass" wie am Login-Screen), 24er-ViewBox auf 288px skaliert, zentriert -->
-  <!-- Cast Shadow: gleiche Form, hart versetzt (Flat Style, passend zum "pop"-Versatzschatten der UI) -->
-  <g fill="none" stroke="#1A1A1A" stroke-opacity="0.22" stroke-width="2"
-     stroke-linecap="round" stroke-linejoin="round"
-     transform="translate(130,130) scale(12)">
+  <!-- Schatten nach dem gemeinsamen Icon-Standard aller Apps (Origami/Dices/
+       Newspaper/BookUp/Toride): weicher Schlagschatten in einer dunklen Tönung
+       der Hintergrundfarbe statt des früheren harten Versatzschattens.
+       Zwei Lagen wie bei Toride gen-icons.mjs: Ambient (Blur 8, Versatz 2.5/6,
+       34%) + Kontakt (Blur 2, Versatz 0/2, 30%); Tinte = dunkles Gold-Braun. -->
+  <g fill="none" stroke="#4A3809" stroke-opacity="0.34" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round" filter="url(#ambient)"
+     transform="translate(114.5,118) scale(12)">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/>
+  </g>
+  <g fill="none" stroke="#4A3809" stroke-opacity="0.30" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round" filter="url(#contact)"
+     transform="translate(112,114) scale(12)">
     <circle cx="12" cy="12" r="10"/>
     <path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/>
   </g>
 
-  <!-- Kompass in Ink -->
+  <!-- Kompass in Ink (Lucide "compass" wie am Login-Screen), 24er-ViewBox auf
+       288px skaliert, zentriert — Symbolgröße 55% der Kachel = Maskable-Soll
+       (Chrome-Faktor 1,31 → dargestellt ~42% wie bei den nativen Apps) -->
   <g fill="none" stroke="#1A1A1A" stroke-width="2"
      stroke-linecap="round" stroke-linejoin="round"
      transform="translate(112,112) scale(12)">
