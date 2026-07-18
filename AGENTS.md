@@ -1,7 +1,7 @@
 # Agenten-Leitfaden — vegvisir
 
-Persönliches Dashboard (PWA) von Patrick: Bookmarks im Homescreen-Look,
-Dienstplan-Kalender und Werkzeuge (z. B. PDF-Duplex-Fixer). Reines Vanilla-JS
+Persönliches Dashboard (PWA) von Patrick: Bookmarks im Homescreen-Look
+und Werkzeuge (z. B. PDF-Duplex-Fixer). Reines Vanilla-JS
 **ohne Build-Step**, deployt auf **Vercel** (statisch, kein Build nötig).
 
 ## Verbindliche Arbeitsregeln
@@ -16,7 +16,7 @@ Dienstplan-Kalender und Werkzeuge (z. B. PDF-Duplex-Fixer). Reines Vanilla-JS
 ### Verifikation — kein Headless-Test möglich
 Die App liegt hinter einem **GitHub-OAuth-Login-Gate** (`js/auth.js`). Ein
 headless Browser kommt nur bis zum Login; die eigentliche App (Suche,
-Slash-Befehle, Dienstplan, Import-Dialoge) startet erst nach erlaubtem Login
+Slash-Befehle, Import-Dialoge) startet erst nach erlaubtem Login
 und ist **nicht** automatisiert erreichbar.
 
 Daher bei Änderungen **nicht** headless/im Browser verifizieren, sondern:
@@ -32,7 +32,7 @@ Daher bei Änderungen **nicht** headless/im Browser verifizieren, sondern:
   `styles.css` (eingecheckt, Vercel braucht keinen Build).
   **`styles.css` nie direkt bearbeiten** — immer die Quelle ändern und neu bauen.
 - **Backend:** Supabase (GitHub-OAuth, Postgres-Tabellen `vegvisir_data` und
-  `dienstplan_events`, Edge Function `google-sync`), abgesichert per RLS.
+  `import_log`), abgesichert per RLS.
 - **PDF:** `pdf-lib`, als ES-Modul in `js/vendor/` vendored.
 - **PWA:** installierbar, bewusst ohne Service-Worker.
 
@@ -61,25 +61,17 @@ js/
   config.js           # SUPABASE_URL, ANON_KEY, ALLOWED_GITHUB_LOGIN
   data.js             # Bookmark-Daten: localStorage + Supabase-Spiegelung
   backup.js           # Backup-Rotation vor jedem Import (Undo-Fundament)
-  import.js           # Datei-Router: JSON = Bookmarks, ICS = Dienstplan
+  import.js           # JSON-Import der Bookmarks (Knopf, /import, Drag & Drop)
   render.js           # Oberfläche aus Daten bauen
   templates.js        # HTML-Strings aus Daten (kein DOM, kein State)
   dom.js              # Reine Helfer: escapen, URLs normalisieren
   search.js           # Live-Suche + Befehls-Palette
   commands.js         # Slash-Befehle (Definitionen + Ausführung)
   sheet.js            # Ordner als Bottom-Sheet öffnen/schließen
-  dienstplan.js       # Dienstplan-Kalender (Wochen-/Monatsansicht, Mo–Fr)
-  dienstplan-db.js    # Supabase-Tabelle dienstplan_events
-  ics.js              # ICS-Parser (OpCyc-Dienstplan)
-  google-sync.js      # Frontend-Brücke zur Edge Function google-sync
   toolwindows.js      # Werkzeug-Dock + verschiebbare Fenster
   pdfduplex.js        # PDF-Duplex-Fixer UI (lazy geladen)
   pdfDuplexFixer.js   # PDF-Duplex-Fixer Logik (rein, ohne DOM)
   vendor/pdf-lib.esm.min.js
-supabase/
-  functions/google-sync/   # Edge Function: Google-Kalender-Sync
-  migrations/              # SQL-Migrationen
-docs/                      # Einrichtungs-Anleitungen
 ```
 
 ## Architektur-Notizen
@@ -91,9 +83,9 @@ docs/                      # Einrichtungs-Anleitungen
 - **Datenfluss:** `localStorage` ist die Quelle der Wahrheit fürs sofortige
   Rendern; jeder Import wird zusätzlich nach Supabase gespiegelt, beim Start
   wird im Hintergrund eine ggf. neuere Cloud-Version geholt.
-- **Backups:** Vor jedem Import (JSON wie ICS) rotiert `backup.js` eine
+- **Backups:** Vor jedem Import rotiert `backup.js` eine
   Sicherung — Fundament für Undo. Nicht umgehen.
-- **Lazy Loading:** Schwere Werkzeuge (PDF-Duplex-Fixer) und der Dienstplan
+- **Lazy Loading:** Schwere Werkzeuge (PDF-Duplex-Fixer)
   werden erst beim Öffnen dynamisch importiert.
 - **Konfiguration ist öffentlich:** `js/config.js` enthält bewusst keine
   Geheimnisse — der Anon-Key ist ein Browser-Schlüssel, abgesichert über

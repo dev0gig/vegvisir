@@ -1,21 +1,17 @@
-/* ============ IMPORT (Datei-Router: JSON = Bookmarks, ICS = Dienstplan) ============ */
-/* Eine Datei kann per Knopf gewählt, per Slash-Befehl /import geöffnet oder
-   einfach irgendwo auf die Seite gezogen werden. Anhand der Endung wird
-   entschieden:
-     .json → Bookmark-Aktualisierung (Überschreiben + Sicherung fürs Undo)
-     .ics  → Dienstplan-Import (öffnet das Dienstplan-Werkzeug mit Dialog)
-   Passt eine JSON-Datei nicht ins Schema, kommt eine wegklickbare Warnung und
-   es wird nichts überschrieben. */
+/* ============ IMPORT (Bookmarks aus JSON-Datei) ============ */
+/* Eine JSON-Datei kann per Knopf gewählt, per Slash-Befehl /import geöffnet
+   oder einfach irgendwo auf die Seite gezogen werden. Sie ersetzt die
+   bestehenden Bookmarks (mit Sicherung fürs Undo). Passt die Datei nicht ins
+   Schema, kommt eine wegklickbare Warnung und es wird nichts überschrieben. */
 
 import { saveData, isEmptyData, loadData, pushToSupabase } from "./data.js";
 import { logImport } from "./backup.js";
-import { openToolById } from "./toolwindows.js";
 import { closeSheet } from "./sheet.js";
 import { render } from "./render.js";
 
 const importFile = document.getElementById("importFile");
 
-/* Öffnet den Datei-Auswahldialog (JSON oder ICS). */
+/* Öffnet den Datei-Auswahldialog (JSON). */
 export function pickFile() { importFile.click(); }
 
 /* Text einlesen und prüfen. Gibt den fertigen Datensatz zurück oder null,
@@ -38,7 +34,7 @@ function commit(payload) {
   render();
 }
 
-/* Endung einer Datei in Kleinbuchstaben ("json" | "ics" | ""). */
+/* Endung einer Datei in Kleinbuchstaben ("json" | ""). */
 function extOf(name) {
   const m = /\.([a-z0-9]+)$/i.exec(String(name || ""));
   return m ? m[1].toLowerCase() : "";
@@ -72,16 +68,8 @@ function handleJson(file) {
 /* Zentraler Datei-Router: entscheidet anhand der Endung, was passiert. */
 export function importAnyFile(file) {
   if (!file) return;
-  const ext = extOf(file.name);
-  if (ext === "ics") {
-    // Dienstplan-Werkzeug öffnen und die Datei dort mit Bestätigungs-Dialog
-    // importieren lassen (die Logik lebt in js/dienstplan.js).
-    import("./dienstplan.js").then((m) => m.importIcsFile(file)).catch(() => {});
-    openToolById("dienstplan");
-    return;
-  }
-  if (ext === "json") { handleJson(file); return; }
-  alert("Diese Datei wird nicht unterstützt. Erlaubt sind .json (Bookmarks) und .ics (Dienstplan).");
+  if (extOf(file.name) === "json") { handleJson(file); return; }
+  alert("Diese Datei wird nicht unterstützt. Erlaubt ist nur .json (Bookmarks).");
 }
 
 /* Hängt Datei-Auswahl und Drag&Drop an (einmalig beim Start aufgerufen). */

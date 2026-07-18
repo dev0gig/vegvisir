@@ -11,8 +11,6 @@ import { buildDock, getSheetToolId, closeToolWindow } from "./toolwindows.js";
 import { render } from "./render.js";
 import { loadData, saveData, pullFromSupabase } from "./data.js";
 import { initAuth } from "./auth.js";
-import { handleGoogleRedirect } from "./google-sync.js";
-import { flash } from "./commands.js";
 
 const backdrop = document.getElementById("backdrop");
 
@@ -45,12 +43,6 @@ function startApp() {
 
   // Sofort ist der localStorage gerendert; nun im Hintergrund die Cloud prüfen.
   syncFromCloud();
-
-  // Kommt der Aufruf gerade von der Google-Zustimmungsseite zurück (Adresse
-  // enthält code+state aus /google verbinden), die Verbindung abschließen.
-  handleGoogleRedirect()
-    .then((r) => { if (r) flash(`Google-Kalender „${r.kalender}“ verbunden.`, "ok"); })
-    .catch((err) => flash("Google-Verbindung fehlgeschlagen: " + (err.message || ""), "warn"));
 }
 
 /* Holt die Cloud-Version und übernimmt sie lokal, wenn sie neuer ist als der

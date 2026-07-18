@@ -1,7 +1,7 @@
 {
   "name": "vegvisir",
   "version": "2.0.0",
-  "description": "Persönliches Dashboard (PWA). Bookmarks, Dienstplan, Werkzeuge — Design auf Tailwind-Basis.",
+  "description": "Persönliches Dashboard (PWA). Bookmarks und Werkzeuge — Design auf Tailwind-Basis.",
   "private": true,
   "scripts": {
     "css": "tailwindcss -i src/app.tailwind.css -o styles.css",

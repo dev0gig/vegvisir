@@ -1,7 +1,7 @@
 /* ============ PDF DUPLEX-FIXER (UI) ============
-   Oberfläche für js/pdfDuplexFixer.js (reine Logik). Wird — wie der
-   Dienstplan — erst beim Öffnen des Werkzeugs dynamisch nachgeladen,
-   damit das pdf-lib-Bundle den App-Start nicht bremst.
+   Oberfläche für js/pdfDuplexFixer.js (reine Logik). Wird erst beim Öffnen
+   des Werkzeugs dynamisch nachgeladen, damit das pdf-lib-Bundle den
+   App-Start nicht bremst.
 
    Bewusst so einfach wie möglich: PDF auswählen oder hineinziehen,
    ein Knopf, fertig. Keine Optionen. */

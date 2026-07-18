@@ -14,7 +14,7 @@ Nach **JEDER** Änderung an einer Datei in diesem Repo wird **IMMER sofort commi
 
 Diese App liegt komplett hinter einem **GitHub-OAuth-Login-Gate** (`js/auth.js`).
 Ein headless-Browser kommt nur bis zum Login-Bildschirm; die eigentliche App
-(Suchleiste, Slash-Befehle, Dienstplan, Import-Dialoge) startet erst nach
+(Suchleiste, Slash-Befehle, Import-Dialoge) startet erst nach
 erfolgreichem Login und ist so **nicht** automatisiert erreichbar.
 
 **Regel:** Bei Änderungen hier **nicht** versuchen, headless/im Browser zu

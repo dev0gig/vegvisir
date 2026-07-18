@@ -1,18 +1,13 @@
-/* ============ BACKUP-ROTATION & IMPORT-PROTOKOLL (Undo-Fundament) ============ */
-/* Fundament für das Undo-System (Wegvisier-Spec v2, Abschnitt 3). Jede
-   Import-Aktion — Bookmarks (JSON) wie Dienstplan (ICS) — schreibt VOR dem
-   Überschreiben eine Zeile in die Tabelle `import_log` und legt darin einen
-   Snapshot des kompletten vorherigen Zustands ab (`prev_snapshot`). Ein
-   späteres /undo stellt genau diesen Zustand wieder her.
+/* ============ IMPORT-PROTOKOLL (Undo-Fundament) ============ */
+/* Fundament für das Undo-System (Wegvisier-Spec v2, Abschnitt 3). Jeder
+   Bookmark-Import (JSON) schreibt VOR dem Überschreiben eine Zeile in die
+   Tabelle `import_log` und legt darin einen Snapshot des kompletten vorherigen
+   Zustands ab (`prev_snapshot`). Ein späteres /undo stellt genau diesen
+   Zustand wieder her — es lässt sich immer der letzte, noch nicht
+   zurückgenommene Import rückgängig machen.
 
-   Zwei-Slot-Prinzip: Es lässt sich immer der jeweils letzte, noch nicht
-   zurückgenommene Import einer Art rückgängig machen. Der Snapshot beim
-   Dienstplan umfasst bewusst den GESAMTEN Tabellenstand (nicht nur den
-   importierten Zeitraum), damit die Wiederherstellung immer einen konsistenten
-   Gesamtzustand liefert.
-
-   Dieses Modul kennt die Oberfläche nicht: Die Wiederherstellungs-Funktionen
-   geben ihr Ergebnis zurück, das Neu-Zeichnen übernimmt der Aufrufer. */
+   Dieses Modul kennt die Oberfläche nicht: Die Wiederherstellungs-Funktion
+   gibt ihr Ergebnis zurück, das Neu-Zeichnen übernimmt der Aufrufer. */
 
 import { getSupabase, getUser } from "./auth.js";
 import { saveData, pushToSupabase } from "./data.js";
@@ -25,15 +20,13 @@ function requireClient() {
 }
 
 /* Schreibt eine Import-Protokollzeile inklusive Snapshot des Zustands VOR dem
-   Import. Von den Import-Wegen aufzurufen, BEVOR sie Daten überschreiben.
+   Import. Vom Import-Weg aufzurufen, BEVOR er Daten überschreibt.
    Gibt die id der neuen Zeile zurück. */
 export async function logImport({
-  kind,               // "ics" | "json"
+  kind,               // "json"
   filename = null,
-  rangeVon = null,    // nur bei ICS: bestätigter, bereinigter Zeitraum
-  rangeBis = null,
   eventCount = 0,
-  prevSnapshot = null, // kompletter Zustand vor dem Import (siehe Snapshot-Helfer)
+  prevSnapshot = null, // kompletter Zustand vor dem Import
 }) {
   const { sb, user } = requireClient();
   const { data, error } = await sb
@@ -42,8 +35,6 @@ export async function logImport({
       user_id: user.id,
       kind,
       filename,
-      range_von: rangeVon,
-      range_bis: rangeBis,
       event_count: eventCount,
       prev_snapshot: prevSnapshot,
     })
@@ -51,20 +42,6 @@ export async function logImport({
     .single();
   if (error) throw new Error("Import-Protokoll fehlgeschlagen: " + error.message);
   return data.id;
-}
-
-/* Snapshot des KOMPLETTEN Dienstplan-Bestands des Benutzers (alle Zeilen) —
-   Grundlage für ein konsistentes Dienstplan-Undo. */
-export async function snapshotDienstplan() {
-  const { sb, user } = requireClient();
-  const { data, error } = await sb
-    .from("dienstplan_events")
-    .select("datum, start_zeit, end_zeit, titel")
-    .eq("user_id", user.id)
-    .order("datum", { ascending: true })
-    .order("start_zeit", { ascending: true });
-  if (error) throw new Error("Snapshot fehlgeschlagen: " + error.message);
-  return { events: data || [] };
 }
 
 /* Letzten noch nicht zurückgenommenen Import einer Art holen (oder null). */
@@ -91,44 +68,6 @@ async function markRestored(id) {
     .eq("id", id)
     .eq("user_id", user.id);
   if (error) throw new Error("Undo-Markierung fehlgeschlagen: " + error.message);
-}
-
-/* Undo Dienstplan: den kompletten Bestand durch den Snapshot des letzten
-   ICS-Imports ersetzen. Gibt den betroffenen Zeitraum { von, bis, filename }
-   zurück (für den späteren Google-Re-Sync) oder null, wenn es nichts
-   zurückzunehmen gibt. */
-export async function undoDienstplan() {
-  const { sb, user } = requireClient();
-  const log = await latestUndoable("ics");
-  if (!log) return null;
-
-  const snap = log.prev_snapshot || { events: [] };
-  const events = Array.isArray(snap.events) ? snap.events : [];
-
-  // Ganzen Bestand des Benutzers leeren ...
-  const { error: delErr } = await sb
-    .from("dienstplan_events")
-    .delete()
-    .eq("user_id", user.id);
-  if (delErr) throw new Error("Undo (Löschen) fehlgeschlagen: " + delErr.message);
-
-  // ... und den Snapshot exakt wiederherstellen.
-  if (events.length) {
-    const batchId = crypto.randomUUID();
-    const rows = events.map((e) => ({
-      user_id: user.id,
-      datum: e.datum,
-      start_zeit: e.start_zeit,
-      end_zeit: e.end_zeit,
-      titel: e.titel,
-      import_batch_id: batchId,
-    }));
-    const { error: insErr } = await sb.from("dienstplan_events").insert(rows);
-    if (insErr) throw new Error("Undo (Einfügen) fehlgeschlagen: " + insErr.message);
-  }
-
-  await markRestored(log.id);
-  return { von: log.range_von, bis: log.range_bis, filename: log.filename };
 }
 
 /* Undo Bookmarks: den vorherigen Datenstand des letzten JSON-Imports
