@@ -8,11 +8,10 @@ Dienstplan-Kalender und Werkzeuge (z. B. PDF-Duplex-Fixer). Reines Vanilla-JS
 
 ### Commits & Push
 - Nach **jeder** Änderung an einer Datei in diesem Repo wird **immer sofort
-  committet**.
+  selbstständig committet und gepusht** — ohne Rückfrage.
 - Commit-Nachricht **auf Deutsch**: klar erklären, **was** geändert wurde und
   **warum** — verständlich ohne Fachwissen.
-- **Niemals selbst pushen.** Push nur, wenn Patrick es ausdrücklich sagt.
-  Nach dem Commit kurz Bescheid geben und auf die Push-Freigabe warten.
+- Nach dem Push kurz Bescheid geben.
 
 ### Verifikation — kein Headless-Test möglich
 Die App liegt hinter einem **GitHub-OAuth-Login-Gate** (`js/auth.js`). Ein
