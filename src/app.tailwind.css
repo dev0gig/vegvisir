@@ -198,7 +198,7 @@ body {
   border: var(--line); border-radius: var(--radius);
 }
 .auth-ico { width: 56px; height: 56px; color: var(--color-ink); }
-.auth-title { font-weight: 700; font-size: 1.9rem; letter-spacing: 0.01em; color: var(--color-ink); }
+.auth-title { font-weight: 700; font-size: 2.2rem; letter-spacing: 0.01em; color: var(--color-ink); }
 .auth-sub {
   margin: -8px 0 6px; color: var(--color-ink-mute);
   text-transform: uppercase; letter-spacing: 0.14em; font-size: 0.78rem; font-weight: 600;
@@ -254,7 +254,7 @@ body {
 .sheet-ico svg, .sheet-ico i { width: 20px; height: 20px; }
 .sheet-title {
   font-weight: 700;
-  font-size: clamp(1.2rem, 4vw, 1.45rem); letter-spacing: 0.01em;
+  font-size: clamp(1.35rem, 4.5vw, 1.65rem); letter-spacing: 0.01em;
   color: var(--color-ink); line-height: 1.1;
 }
 .sheet-sub {
@@ -458,7 +458,7 @@ body {
 .tw-title {
   flex: 1 1 auto; min-width: 0;
   font-weight: 700; letter-spacing: 0.02em;
-  font-size: 1rem; color: var(--color-ink);
+  font-size: 1.15rem; color: var(--color-ink);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .tw-close, .tw-action {
@@ -542,7 +542,7 @@ body {
   color: var(--color-ink);
 }
 .wt-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.wt-head h2 { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.02em; }
+.wt-head h2 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.02em; }
 .wt-date { font-family: var(--wt-mono); font-size: 0.74rem; color: var(--color-ink-mute); }
 
 /* Bento-Cards: Paper-Fläche mit Konturlinie */
@@ -677,14 +677,14 @@ body {
 /* ============ FAVORITEN & ABSCHNITTE ============ */
 .home-fav-title {
   display: block; max-width: 760px; margin: 0 auto 12px; padding: 0 4px;
-  text-align: center;
+  text-align: center; font-size: 0.78rem;
 }
 #homeFav .home-grid { margin-bottom: clamp(24px, 4vw, 40px); }
 @media (min-width: 860px) { .home-fav-title { max-width: 880px; } }
 
 .section-title {
   display: block; max-width: 760px; margin: clamp(18px, 3vw, 28px) auto 12px; padding: 0 4px;
-  text-align: center;
+  text-align: center; font-size: 0.78rem;
 }
 #homeGrid > .section-title:first-child { margin-top: 0; }
 @media (min-width: 860px) { .section-title { max-width: 880px; } }

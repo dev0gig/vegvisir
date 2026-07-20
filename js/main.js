@@ -70,10 +70,4 @@ if (window.lucide) lucide.createIcons();
 /* Login-Gate starten; bei Erfolg wird startApp aufgerufen. */
 initAuth(startApp);
 
-/* Alte Service-Worker + Caches einer früheren PWA-Version entfernen. */
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister())).catch(() => {});
-}
-if (window.caches) {
-  caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
-}
+

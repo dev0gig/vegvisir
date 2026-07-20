@@ -18,10 +18,8 @@
     --color-sun: #F5C84C;
     --color-sun-soft: #FBEDC5;
     --color-wiwo: #F3A694;
-    --color-erdberg: #A3C9A8;
     --color-spittelau: #C3B1E1;
     --color-flexi: #DDEBD5;
-    --color-dienst: #EFE9DB;
     --color-ok: #4C7A54;
     --color-err: #B3502E;
   }
@@ -474,7 +472,7 @@ body {
 }
 .auth-title {
   font-weight: 700;
-  font-size: 1.9rem;
+  font-size: 2.2rem;
   letter-spacing: 0.01em;
   color: var(--color-ink);
 }
@@ -578,7 +576,7 @@ body {
 }
 .sheet-title {
   font-weight: 700;
-  font-size: clamp(1.2rem, 4vw, 1.45rem);
+  font-size: clamp(1.35rem, 4.5vw, 1.65rem);
   letter-spacing: 0.01em;
   color: var(--color-ink);
   line-height: 1.1;
@@ -942,7 +940,7 @@ body {
   min-width: 0;
   font-weight: 700;
   letter-spacing: 0.02em;
-  font-size: 1rem;
+  font-size: 1.15rem;
   color: var(--color-ink);
   white-space: nowrap;
   overflow: hidden;
@@ -1122,7 +1120,7 @@ body {
   flex-wrap: wrap;
 }
 .wt-head h2 {
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -1537,6 +1535,7 @@ body {
   margin: 0 auto 12px;
   padding: 0 4px;
   text-align: center;
+  font-size: 0.78rem;
 }
 #homeFav .home-grid {
   margin-bottom: clamp(24px, 4vw, 40px);
@@ -1552,6 +1551,7 @@ body {
   margin: clamp(18px, 3vw, 28px) auto 12px;
   padding: 0 4px;
   text-align: center;
+  font-size: 0.78rem;
 }
 #homeGrid > .section-title:first-child {
   margin-top: 0;
