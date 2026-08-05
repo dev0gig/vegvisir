@@ -4,8 +4,8 @@
    entweder als Bottom-Sheet (Standard) oder als frei verschiebbares Fenster. */
 
 import { esc, escAttr } from "./dom.js";
-import { getActiveSheet } from "./sheet.js";
-import { logout } from "./auth.js";
+import { openBookmarkEditor, openFolderEditor } from "./editor.js";
+import { pickFile, exportData } from "./importexport.js";
 
 const backdrop = document.getElementById("backdrop");
 const toolsDock = document.getElementById("toolsDock");
@@ -18,10 +18,23 @@ let sheetToolId = null; // id des Werkzeugs, das gerade als Bottom-Sheet offen i
 /* Damit andere Module wissen, ob gerade ein Werkzeug-Sheet offen ist. */
 export function getSheetToolId() { return sheetToolId; }
 
-/* Ein einziger Knopf neben der Suche öffnet ein kleines Menü mit allen
-   Werkzeugen (aus tools.js) und dem Abmelden-Eintrag. */
+/* Was das Menü außer den Werkzeugen noch anbietet: die Bookmark-Verwaltung.
+   So ist alles auch ohne Slash-Befehle erreichbar (wichtig am Handy). */
+const ACTIONS = [
+  { action: "new-bookmark", icon: "plus",                 label: "Bookmark anlegen" },
+  { action: "new-folder",   icon: "folder-plus",          label: "Ordner anlegen" },
+  { action: "import",       icon: "upload",               label: "Importieren (JSON)" },
+  { action: "export",       icon: "hard-drive-download",  label: "Sichern (JSON)" },
+];
+
+/* Ein einziger Knopf neben der Suche öffnet ein kleines Menü mit der
+   Bookmark-Verwaltung und allen Werkzeugen (aus tools.js). */
 export function buildDock() {
   if (!toolsDock) return;
+  const actionItems = ACTIONS.map((a) =>
+    `<button class="dock-menu-item" role="menuitem" data-action="${escAttr(a.action)}">
+       <i data-lucide="${escAttr(a.icon)}"></i><span>${esc(a.label)}</span>
+     </button>`).join("");
   const toolItems = TOOLS.map((t, i) =>
     `<button class="dock-menu-item" role="menuitem" data-tool="${i}">
        <i data-lucide="${escAttr(t.icon || "wrench")}"></i><span>${esc(t.name || "Werkzeug")}</span>
@@ -30,11 +43,9 @@ export function buildDock() {
     <button class="tool-dock-btn" id="dockMenuBtn" title="Menü" aria-label="Menü"
             aria-haspopup="true" aria-expanded="false"><i data-lucide="menu"></i></button>
     <div class="dock-menu" id="dockMenu" role="menu">
-      ${toolItems}
+      ${actionItems}
       ${TOOLS.length ? '<div class="dock-menu-sep"></div>' : ""}
-      <button class="dock-menu-item" role="menuitem" data-action="logout">
-        <i data-lucide="log-out"></i><span>Abmelden</span>
-      </button>
+      ${toolItems}
     </div>`;
 
   const btn = toolsDock.querySelector("#dockMenuBtn");
@@ -52,7 +63,11 @@ export function buildDock() {
   menu.querySelectorAll(".dock-menu-item").forEach((item) =>
     item.addEventListener("click", () => {
       setOpen(false);
-      if (item.dataset.action === "logout") logout();
+      const a = item.dataset.action;
+      if (a === "new-bookmark") openBookmarkEditor(null, null);
+      else if (a === "new-folder") openFolderEditor(null);
+      else if (a === "import") pickFile();
+      else if (a === "export") exportData();
       else openToolWindow(TOOLS[+item.dataset.tool]);
     }));
 
@@ -185,7 +200,7 @@ export function closeToolWindow(id) {
     if (sheetToolId === id) sheetToolId = null;
     el.classList.remove("open");
     el.style.transform = "";
-    if (!getActiveSheet() && !sheetToolId) {
+    if (!sheetToolId) {
       backdrop.classList.remove("open");
       document.body.style.overflow = "";
     }

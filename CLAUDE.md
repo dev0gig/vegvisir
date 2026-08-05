@@ -1,26 +1,32 @@
 # Anweisungen für Claude — vegvisir
 
-## Commits
+## Commits & Push
 
-Nach **JEDER** Änderung an einer Datei in diesem Repo wird **IMMER sofort committet**.
+Nach **JEDER** Änderung an einer Datei in diesem Repo wird **sofort committet
+und gepusht** — ohne Rückfrage (Patricks Dauer-Freigabe).
 
-- Die Commit-Nachricht erklärt **klar und auf Deutsch**, **was** geändert wurde und
-  **warum**, so dass Patrick sie ohne Fachwissen versteht.
-- **Niemals selbst pushen.** Der Push erfolgt nur, wenn Patrick es ausdrücklich sagt.
-  Nach dem Commit kurz darauf hinweisen, dass committet wurde, und auf Freigabe zum
-  Pushen warten.
+- Die Commit-Nachricht erklärt **klar und auf Deutsch**, **was** geändert wurde
+  und **warum**, so dass Patrick sie ohne Fachwissen versteht.
+- Nach dem Push kurz Bescheid geben.
 
-## Kein Headless-Test — GitHub-Login blockiert
+## Headless testen — ist jetzt möglich und Pflicht
 
-Diese App liegt komplett hinter einem **GitHub-OAuth-Login-Gate** (`js/auth.js`).
-Ein headless-Browser kommt nur bis zum Login-Bildschirm; die eigentliche App
-(Suchleiste, Slash-Befehle, Import-Dialoge) startet erst nach
-erfolgreichem Login und ist so **nicht** automatisiert erreichbar.
+Das GitHub-OAuth-Login-Gate ist weg (kein Supabase mehr, alle Daten liegen im
+`localStorage`). Die App startet also sofort und ist voll automatisierbar.
 
-**Regel:** Bei Änderungen hier **nicht** versuchen, headless/im Browser zu
-verifizieren. Stattdessen:
+**Regel:** Bei Änderungen hier **im Browser verifizieren**, nicht nur
+`node --check` laufen lassen:
 
-- `node --check` auf die geänderten JS-Module laufen lassen und prüfen, dass alle
-  Import-/Export-Namen zwischen den Modulen zusammenpassen.
-- Die eigentliche Sicht-Prüfung macht **Patrick manuell im Browser** (er ist
-  eingeloggt) — nach dem Deploy kurz auflisten, was er durchklicken soll.
+- Server starten (`python3 -m http.server 8899`), mit Playwright
+  (`~/repos/toride/node_modules`) durchklicken, Screenshots ansehen.
+- Testdaten über `localStorage.setItem("vegvisir.data", …)` setzen.
+- Mindestens prüfen: Kachelwand, Ziehen/Umsortieren, Ordner-Geste (0,7 s über
+  der Mitte halten), Dialoge, Handy-Breite (kein seitliches Scrollen).
+
+Alles Weitere — Aufbau, Datenformat und die beiden Stolperfallen beim Ziehen —
+steht in **AGENTS.md**.
+
+## Design
+
+Nur die CSS-Quelle `src/app.tailwind.css` bearbeiten und mit `npm run css`
+bauen. **`styles.css` niemals direkt anfassen.**

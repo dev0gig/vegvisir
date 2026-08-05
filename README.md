@@ -1,29 +1,67 @@
 # Vegvisir
 
-Persönliche Bookmark-Startseite. Zeigt Bookmarks im Homescreen-Look an,
-befüllt ausschließlich per JSON-Import.
+Persönliche Bookmark-Startseite im **Windows-Metro-Stil**: farbige Kacheln,
+frei verschiebbar, Ordner per Ziehen. Läuft komplett im Browser — **kein
+Server, kein Login, keine Cloud**.
 
-- **Nur Import:** lädt eine JSON-Datei (Button auf der leeren Seite oder Datei
-  aufs Fenster ziehen), gespeichert lokal im Browser (`localStorage`).
-- **Layout:** Ordner als Kacheln mit 2×2-Vorschau, lose Bookmarks daneben.
-  Klick auf einen Ordner öffnet ein Bottom-Sheet mit den Links.
-- **Suche:** feste Leiste unten durchsucht alle Bookmarks (auch in Ordnern).
-- **Icons:** Bild aus dem Import als Cover-Icon, sonst Monogramm-Platzhalter.
-- **Installierbar (PWA)** ohne Service-Worker.
-- **Login + Cloud-Sync (Supabase):** Vor der App steht ein Login-Gate
-  („Mit GitHub anmelden"). Nur das in `ALLOWED_GITHUB_LOGIN` hinterlegte
-  GitHub-Konto bekommt Zugriff, sonst sofortiger Logout mit „Kein Zugriff".
-  (Prüfung über den GitHub-Benutzernamen, nicht die E-Mail.) Jeder JSON-Import
-  wird zusätzlich in die Supabase-Tabelle `vegvisir_data` gespiegelt; beim Start
-  rendert die App zuerst den lokalen `localStorage`-Stand und holt danach im
-  Hintergrund eine ggf. neuere Cloud-Version.
+## Was die App kann
+
+- **Kachelwand:** Jedes Bookmark ist eine farbige Kachel mit dem Favicon in der
+  Mitte. Drei Größen: klein (1×1), breit (2×1), groß (2×2).
+- **Kachelfarbe aus dem Favicon:** Die häufigste kräftige Farbe des Icons wird
+  ausgelesen und auf eine feste Helligkeit gebracht, damit die weiße Schrift
+  überall lesbar bleibt (Kontrast mindestens 4,5:1).
+  ⚠️ Das geht nur bei **eingebetteten** Bildern (`data:`-Adressen). Fremde
+  Favicon-Adressen (z.B. Googles Dienst `t2.gstatic.com`) darf der Browser aus
+  Sicherheitsgründen nicht auslesen — die bekommen die Standardfarbe. Fügt man
+  im Bearbeiten-Dialog ein eigenes Bild aus der Zwischenablage ein, ist es
+  eingebettet und die Farbe wird berechnet.
+- **Selbst verwalten:** Bookmarks und Ordner anlegen, bearbeiten, löschen,
+  Größe wählen — über das Kachelmenü (Rechtsklick bzw. langer Druck), das
+  Menü unten rechts oder die Slash-Befehle.
+- **Ziehen:** Kacheln frei umsortieren. **Mitte einer anderen Kachel 0,7 s
+  halten** → daraus wird ein Ordner (der Ring baut sich sichtbar auf).
+  Funktioniert mit Maus, Finger und Stift.
+- **Ordner** klappen an Ort und Stelle im Raster auf, direkt unter ihrer Kachel.
+- **Suche** (feste Leiste unten) durchsucht alle Bookmarks, auch die in Ordnern.
+- **Import/Export:** JSON-Datei per Knopf, `/import` oder Ziehen auf die Seite.
+  Sind schon Bookmarks da, wird gefragt: **ersetzen oder zusammenführen**.
+
+## ⚠️ Die Daten liegen NUR in diesem Browser
+
+Es gibt keine Cloud und keine Synchronisierung. Browserdaten löschen, anderes
+Gerät oder anderer Browser = die Bookmarks sind weg.
+
+**Deshalb regelmäßig sichern:** `/export` (oder „Sichern" im Menü) lädt eine
+JSON-Datei herunter. Ist die letzte Sicherung älter als 14 Tage, erinnert die
+App oben mit einem Streifen daran.
+
+`/undo` nimmt die letzte größere Änderung zurück (Import, Löschen, Ordner
+bilden oder auflösen). Aufgehoben werden die letzten **zwei** Stände — mehr
+passt nicht in den Browser-Speicher (rund 5 MB, ein voller Datensatz mit
+eingebetteten Icons wiegt schon etwa 0,7 MB).
+
+## Slash-Befehle
+
+| Befehl | Wirkung |
+| --- | --- |
+| `/neu` | Neues Bookmark anlegen |
+| `/ordner` | Neuen Ordner anlegen |
+| `/import` | Bookmarks importieren (JSON) |
+| `/export` | Bookmarks sichern (JSON) |
+| `/undo` | Letzte größere Änderung zurücknehmen |
+| `/g <text>` | Websuche bei Google |
+| `/c <rechnung>` | Blitzrechner direkt in der Suchzeile |
+| `/calc`, `/zeit`, `/duplex` | Werkzeug-Fenster öffnen |
+
+Enter ohne Slash startet eine Websuche bei DuckDuckGo.
 
 ## Design / CSS bauen (Tailwind)
 
-Das Design (Neo-Minimalismus: Creme-Flächen, Anthrazit-Konturen, Pastell-
-Kategorien, Gelb-Akzent) lebt als Quelle in **`src/app.tailwind.css`** und wird
-mit Tailwind v4 zu **`styles.css`** kompiliert. Die fertige `styles.css` ist
-eingecheckt — Vercel braucht keinen Build-Schritt.
+Das Design (Neo-Minimalismus: Creme-Flächen, Anthrazit-Konturen, Gelb-Akzent)
+lebt als Quelle in **`src/app.tailwind.css`** und wird mit Tailwind v4 zu
+**`styles.css`** kompiliert. Die fertige `styles.css` ist eingecheckt — das
+Hosting braucht keinen Build-Schritt.
 
 ```
 npm install        # einmalig (holt Tailwind)
@@ -34,31 +72,8 @@ npm run css:watch  # dito, baut bei jeder Änderung neu
 **Wichtig:** Nie `styles.css` direkt bearbeiten, immer die Quelle unter `src/`
 ändern und neu bauen (sonst überschreibt der nächste Build die Änderung).
 
-## Konfiguration (Supabase)
+## Lokal starten
 
-Die Zugangsdaten stehen in **`js/config.js`** (`SUPABASE_URL`,
-`SUPABASE_ANON_KEY`, `ALLOWED_GITHUB_LOGIN`). Diese Werte dürfen öffentlich sein:
-Der Anon-Key ist ein Browser-Schlüssel und wird durch Supabase-RLS + die
-`ALLOWED_GITHUB_LOGIN`-Prüfung abgesichert — es sind **keine** Geheimnisse.
-
-- **`ALLOWED_GITHUB_LOGIN`** ist der zugelassene GitHub-Benutzername (klein
-  geschrieben). Die Prüfung läuft über den Benutzernamen, nicht die E-Mail —
-  daher unabhängig von privaten E-Mail-Einstellungen.
-- In Supabase muss der **GitHub-OAuth-Provider aktiv** sein, und die Callback-URL
-  bei GitHub/Supabase muss auf die Deploy-Domain zeigen.
-
-### Env Vars auf Vercel (optional, pro Umgebung)
-
-Das Projekt ist reines Vanilla-JS **ohne Build-Step** — `config.js` wird direkt
-ausgeliefert. Möchte man die Werte pro Umgebung austauschen, **ohne** `config.js`
-zu bearbeiten, kann man sie über diese Env Vars setzen und per kleinem
-Build-Step vor dem Laden von `config.js` in `window.VEGVISIR_CONFIG` schreiben
-(der Override greift dann automatisch):
-
-| Env Var              | Beispiel / Bedeutung                          |
-| -------------------- | --------------------------------------------- |
-| `SUPABASE_URL`          | `https://<projekt>.supabase.co`             |
-| `SUPABASE_ANON_KEY`     | öffentlicher Anon-Key des Supabase-Projekts |
-| `ALLOWED_GITHUB_LOGIN`  | der einzige zugelassene GitHub-Benutzername  |
-
-Ohne solchen Build-Step gelten schlicht die Vorgaben aus `js/config.js`.
+```
+./start-dev.sh     # Dev-Server auf Port 8080
+```

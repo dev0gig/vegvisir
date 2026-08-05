@@ -136,9 +136,11 @@ export function initSearch() {
 
   document.getElementById("searchClear").addEventListener("click", () => { resetSearch(); searchInput.focus(); });
 
-  // Nach Klick auf ein Icon (Link öffnet sich in neuem Tab) die Suche zurücksetzen.
+  // Nach Klick auf ein Icon im Suchmodus (Link öffnet sich in neuem Tab) die
+  // Suche zurücksetzen. Ohne Suchtext gibt es nichts zurückzusetzen — sonst
+  // würde jeder Klick auf eine Kachel die Ansicht unnötig neu zeichnen.
   document.getElementById("homeGrid").addEventListener("click", (e) => {
-    if (e.target.closest(".tile")) setTimeout(resetSearch, 0);
+    if (query.trim() && e.target.closest(".tile")) setTimeout(resetSearch, 0);
   });
 
   // Klick außerhalb von Suchleiste/Palette schließt die Palette.
@@ -156,6 +158,7 @@ function initGlobalTyping() {
     if (e.ctrlKey || e.metaKey || e.altKey) return;   // Strg+C, Cmd+R … nicht abfangen
     if (e.key.length !== 1) return;                    // Funktionstasten/Pfeile ignorieren
     if (searchbar.classList.contains("hidden")) return; // Leiste gerade ausgeblendet
+    if (document.querySelector("dialog[open]")) return;  // ein Dialog ist offen
     const a = document.activeElement;
     if (a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT" || a.isContentEditable)) return;
     e.preventDefault();

@@ -1,73 +1,41 @@
 /* ============ EINSTIEGSPUNKT ============ */
-/* Verbindet die Module: erst das Login-Gate (auth.js), danach — nach
-   erfolgreichem, erlaubtem Login — die eigentliche App. Hängt außerdem die
-   übergreifenden Schließen-Gesten an (Klick auf den dunklen Hintergrund,
-   Escape-Taste). */
+/* Verbindet die Module und startet die App. Es gibt keinen Login und keinen
+   Server mehr — die Bookmarks liegen ausschließlich im Browser (localStorage),
+   deshalb kann sofort gezeichnet werden.
 
-import { getActiveSheet, closeSheet } from "./sheet.js";
+   Hier hängen außerdem die übergreifenden Schließen-Gesten: Klick auf den
+   abgedunkelten Hintergrund und die Escape-Taste. */
+
 import { getQuery, resetSearch, initSearch } from "./search.js";
-import { initImport } from "./import.js";
+import { initImport } from "./importexport.js";
 import { buildDock, getSheetToolId, closeToolWindow } from "./toolwindows.js";
-import { render } from "./render.js";
-import { loadData, saveData, pullFromSupabase } from "./data.js";
-import { initAuth } from "./auth.js";
+import { render, closeFolder, getOpenFolderId } from "./render.js";
+import { ensureColors } from "./store.js";
 
 const backdrop = document.getElementById("backdrop");
 
-/* Klick auf den abgedunkelten Hintergrund schließt, was gerade offen ist:
-   zuerst ein Ordner-Sheet, sonst ein Werkzeug-Sheet. */
+/* Der abgedunkelte Hintergrund gehört nur noch den Werkzeug-Sheets —
+   Ordner klappen im Raster auf und brauchen ihn nicht. */
 backdrop.addEventListener("click", () => {
-  if (getActiveSheet()) closeSheet();
-  else if (getSheetToolId()) closeToolWindow(getSheetToolId());
+  if (getSheetToolId()) closeToolWindow(getSheetToolId());
 });
 
-/* Escape schließt der Reihe nach: Ordner-Sheet → Werkzeug-Sheet → Suche. */
+/* Escape schließt der Reihe nach: Werkzeug-Sheet → offener Ordner → Suche.
+   (Dialoge und das Kachelmenü fangen Escape selbst ab, bevor es hier ankommt.) */
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
-  if (getActiveSheet()) closeSheet();
-  else if (getSheetToolId()) closeToolWindow(getSheetToolId());
+  if (getSheetToolId()) closeToolWindow(getSheetToolId());
+  else if (getOpenFolderId()) closeFolder();
   else if (getQuery()) resetSearch();
 });
 
-/* App genau einmal starten (auth.js kann onAuthed mehrfach melden). */
-let appStarted = false;
-function startApp() {
-  if (appStarted) return;
-  appStarted = true;
-
-  initSearch();
-  initImport();
-  buildDock();
-  render();
-  if (window.lucide) lucide.createIcons();
-
-  // Sofort ist der localStorage gerendert; nun im Hintergrund die Cloud prüfen.
-  syncFromCloud();
-}
-
-/* Holt die Cloud-Version und übernimmt sie lokal, wenn sie neuer ist als der
-   lokale Stand. Als Zeitstempel dient importedAt (wandert im Datensatz mit und
-   ändert sich genau beim Import); ersatzweise updated_at der Cloud-Zeile. */
-async function syncFromCloud() {
-  const row = await pullFromSupabase();
-  if (!row || !row.data) return;
-
-  const local = loadData();
-  const localTime = local && local.importedAt ? Date.parse(local.importedAt) : 0;
-  const remoteTime = row.data.importedAt
-    ? Date.parse(row.data.importedAt)
-    : (row.updated_at ? Date.parse(row.updated_at) : 0);
-
-  if (remoteTime > localTime) {
-    saveData(row.data);
-    render(); // render() zeichnet die Lucide-Icons selbst neu
-  }
-}
-
-/* Icons des Login-Gates sofort zeichnen (die App-Icons folgen in startApp). */
+initSearch();
+initImport();
+buildDock();
+render();
 if (window.lucide) lucide.createIcons();
 
-/* Login-Gate starten; bei Erfolg wird startApp aufgerufen. */
-initAuth(startApp);
-
-
+/* Kachelfarben aus den Favicons nachrechnen — passiert nur einmal je Kachel,
+   danach steht die Farbe in den Daten. Beim ersten Start nach dem Import
+   tauchen die Farben dadurch nach und nach auf. */
+ensureColors(render);

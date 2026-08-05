@@ -1,18 +1,17 @@
 /* ============ SLASH-BEFEHLE ============ */
-/* Die Definitionen und die Ausführung der Slash-Befehle aus der Suchleiste
-   (Wegvisier-Spec v2, Abschnitt 6). Die Eingabe-UX (Palette, Pfeiltasten,
-   Global-Typing) liegt in search.js — dieses Modul kennt nur "was ein Befehl
-   tut" und liefert die Live-Vorschau (Blitzrechner /c).
+/* Die Definitionen und die Ausführung der Slash-Befehle aus der Suchleiste.
+   Die Eingabe-UX (Palette, Pfeiltasten, Global-Typing) liegt in search.js —
+   dieses Modul kennt nur "was ein Befehl tut" und liefert die Live-Vorschau
+   (Blitzrechner /c).
 
    Ein eigener, fixer Layer über der Suchleiste (#cmdLayer) hält die Palette
    (von search.js befüllt) und ein Panel für Vorschau/Ergebnisse/Meldungen. */
 
 import { openToolById } from "./toolwindows.js";
-import { pickFile } from "./import.js";
-import { undoBookmarks } from "./backup.js";
-import { logout } from "./auth.js";
-import { pullFromSupabase, loadData, saveData } from "./data.js";
+import { pickFile, exportData } from "./importexport.js";
+import { undo, canUndo } from "./store.js";
 import { render } from "./render.js";
+import { openBookmarkEditor, openFolderEditor } from "./editor.js";
 import { esc } from "./dom.js";
 
 /* Definition aller Befehle. `arg` = nimmt Freitext hinter dem Befehl;
@@ -20,13 +19,14 @@ import { esc } from "./dom.js";
 export const COMMANDS = [
   { cmd: "/g",      arg: true,  live: false, icon: "search",      desc: "Websuche bei Google" },
   { cmd: "/c",      arg: true,  live: true,  icon: "calculator",  desc: "Blitzrechner direkt in der Suchzeile" },
+  { cmd: "/neu",    arg: false, live: false, icon: "plus",        desc: "Neues Bookmark anlegen" },
+  { cmd: "/ordner", arg: false, live: false, icon: "folder-plus", desc: "Neuen Ordner anlegen" },
   { cmd: "/calc",   arg: false, live: false, icon: "calculator",  desc: "Taschenrechner-Fenster öffnen" },
   { cmd: "/zeit",   arg: false, live: false, icon: "clock",       desc: "Dienstzeiten-Rechner öffnen" },
   { cmd: "/duplex", arg: false, live: false, icon: "file-stack",  desc: "PDF Duplex-Fixer öffnen (Scan-Seiten sortieren)" },
-  { cmd: "/sync",   arg: false, live: false, icon: "refresh-cw",  desc: "Mit der Cloud abgleichen" },
+  { cmd: "/export", arg: false, live: false, icon: "hard-drive-download", desc: "Bookmarks als Datei sichern" },
   { cmd: "/import", arg: false, live: false, icon: "upload",      desc: "Bookmarks importieren (JSON)" },
-  { cmd: "/undo",   arg: false, live: false, icon: "undo-2",      desc: "Letzten Bookmark-Import rückgängig machen" },
-  { cmd: "/logout", arg: false, live: false, icon: "log-out",     desc: "Abmelden" },
+  { cmd: "/undo",   arg: false, live: false, icon: "undo-2",      desc: "Letzte größere Änderung rückgängig machen" },
 ];
 
 const byCmd = Object.fromEntries(COMMANDS.map((c) => [c.cmd, c]));
@@ -52,7 +52,7 @@ let flashTimer = null;
 export function flash(text, kind) {
   showPanel(`<div class="cmd-flash ${kind || ""}">${esc(text)}</div>`);
   if (flashTimer) clearTimeout(flashTimer);
-  flashTimer = setTimeout(hidePanel, 2600);
+  flashTimer = setTimeout(hidePanel, 3200);
 }
 
 /* ---- Befehl aus dem Eingabetext zerlegen ---- */
@@ -80,8 +80,7 @@ function fmtNum(n) {
   return r.toLocaleString("de-AT", { maximumFractionDigits: 10 });
 }
 
-/* Live-Vorschau aktualisieren, während getippt wird (nur /c). Für alle
-   anderen Eingaben wird das Panel ausgeblendet. */
+/* Live-Vorschau aktualisieren, während getippt wird (nur /c). */
 export function previewCommand(text) {
   const { cmd, arg } = parseInput(text);
   if (cmd === "/c") {
@@ -93,23 +92,11 @@ export function previewCommand(text) {
   hidePanel();
 }
 
-/* ---- Cloud-Abgleich (/sync) ---- */
-async function resync() {
-  showPanel('<div class="cmd-hint">Gleiche mit der Cloud ab …</div>');
-  const row = await pullFromSupabase();
-  if (!row || !row.data) { flash("Kein Cloud-Stand gefunden.", "warn"); return; }
-  const local = loadData();
-  const lt = local && local.importedAt ? Date.parse(local.importedAt) : 0;
-  const rt = row.data.importedAt ? Date.parse(row.data.importedAt) : (row.updated_at ? Date.parse(row.updated_at) : 0);
-  if (rt >= lt) { saveData(row.data); render(); }
-  flash("Mit der Cloud abgeglichen.", "ok");
-}
-
-/* ---- Undo: letzten Bookmark-Import rückgängig machen ---- */
-async function doUndo() {
-  const d = await undoBookmarks();
-  if (d) render();
-  flash(d ? "Bookmark-Import rückgängig gemacht." : "Kein Bookmark-Import zum Rückgängigmachen.", d ? "ok" : "warn");
+/* ---- Rückgängig ---- */
+function doUndo() {
+  if (!canUndo()) { flash("Es gibt nichts zum Rückgängigmachen.", "warn"); return; }
+  if (undo()) { render(); flash("Letzte größere Änderung zurückgenommen.", "ok"); }
+  else flash("Rückgängig hat nicht geklappt.", "warn");
 }
 
 /* Führt einen (vollständig getippten) Befehl aus. Gibt zurück, was mit dem
@@ -126,13 +113,14 @@ export async function runCommand(text) {
     case "/g":
       if (arg.trim()) window.open("https://www.google.com/search?q=" + encodeURIComponent(arg.trim()), "_blank", "noopener,noreferrer");
       return { handled: true, clear: true };
-    case "/calc":   openToolById("rechner");     return { handled: true, clear: true };
-    case "/zeit":   openToolById("arbeitszeit"); return { handled: true, clear: true };
-    case "/duplex": openToolById("pdfduplex");   return { handled: true, clear: true };
-    case "/import": pickFile();                  return { handled: true, clear: true };
-    case "/logout": logout();                    return { handled: true, clear: true };
-    case "/sync":   await resync();              return { handled: true, clear: true };
-    case "/undo":   await doUndo();              return { handled: true, clear: true };
+    case "/neu":    openBookmarkEditor(null, null); return { handled: true, clear: true };
+    case "/ordner": openFolderEditor(null);         return { handled: true, clear: true };
+    case "/calc":   openToolById("rechner");        return { handled: true, clear: true };
+    case "/zeit":   openToolById("arbeitszeit");    return { handled: true, clear: true };
+    case "/duplex": openToolById("pdfduplex");      return { handled: true, clear: true };
+    case "/import": pickFile();                     return { handled: true, clear: true };
+    case "/export": exportData();                   return { handled: true, clear: true };
+    case "/undo":   doUndo();                       return { handled: true, clear: true };
     default: return { handled: false };
   }
 }
