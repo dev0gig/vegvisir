@@ -6,29 +6,27 @@
        id:      "eindeutige-id",
        name:    "Anzeigename",
        icon:    "lucide-name",     // Icon-Name von https://lucide.dev/icons
-       display: "sheet",           // "sheet" = Bottom-Sheet wie die Ordner (Standard),
-                                    // "window" = frei verschiebbares Fenster
-       width:   280,               // feste Fenstergröße in px (nur bei "window")
+       width:   280,               // Fenstergröße in px
        height:  400,
        render(container) { ... }   // baut die Oberfläche in `container`
      }
 
-   Ohne `display` öffnet ein Werkzeug als Bottom-Sheet (auf jeder Bildschirmbreite).
+   Jedes Werkzeug öffnet als frei verschiebbares Fenster — Bottom-Sheets gibt
+   es in vegvisir nicht mehr.
 
    `render(container)` bekommt ein leeres <div> und füllt es mit der Tool-UI.
    Optional kannst du eine Aufräum-Funktion zurückgeben – sie wird aufgerufen,
    wenn das Fenster geschlossen wird (z.B. um Timer zu stoppen).
 
-   NEUES TOOL = einfach ein weiteres Objekt in diese Liste eintragen. app.js
-   zeigt automatisch eine Dock-Schaltfläche dafür an; ein Klick öffnet das Tool
-   als frei verschiebbares Fenster mit fixer Größe. */
+   NEUES TOOL = einfach ein weiteres Objekt in diese Liste eintragen. vegvisir
+   legt dafür automatisch eine Kachel auf der Wand an; ein Klick öffnet das
+   Werkzeug als Fenster. */
 
 window.VEG_TOOLS = [
   {
     id: "rechner",
     name: "Rechner",
     icon: "calculator",
-    display: "window",   // Rechner bleibt ein frei verschiebbares Fenster (auch auf schmalen Bildschirmen)
     width: 280,
     height: 400,
     render(container) {
@@ -181,7 +179,9 @@ window.VEG_TOOLS = [
         else if (k === "+" || k === "-" || k === "*" || k === "/") setOp(k);
         else if (k === "Enter" || k === "=") { e.preventDefault(); equals(); }
         else if (k === "%") percent();
-        else if (k === "Escape") clearAll();
+        // Escape gehört der App (schließt das Fenster) — Löschen liegt auf AC
+        // bzw. der Entf-Taste.
+        else if (k === "Delete") clearAll();
         else if (k === "Backspace") backspace();
         else return;
         save();
@@ -198,9 +198,8 @@ window.VEG_TOOLS = [
     id: "arbeitszeit",
     name: "Arbeitszeit",
     icon: "clock",
-    display: "sheet",    // Arbeitszeit immer als Bottom-Sheet (auf jeder Bildschirmbreite)
-    width: 360,
-    height: 720,
+    width: 380,
+    height: 600,
     render(container, api) {
       const KEY = "vegvisir.tool.arbeitszeit";
 
@@ -442,7 +441,8 @@ window.VEG_TOOLS = [
     id: "pdfduplex",
     name: "PDF Duplex-Fixer",
     icon: "file-stack",
-    display: "sheet",
+    width: 560,
+    height: 640,
     render(container, api) {
       // UI und Logik leben als ES-Module in js/pdfduplex.js + js/pdfDuplexFixer.js.
       // Erst beim Öffnen nachladen, weil das pdf-lib-Bundle (~500 KB) mitkommt.

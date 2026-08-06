@@ -3,35 +3,39 @@
    Server mehr — die Bookmarks liegen ausschließlich im Browser (localStorage),
    deshalb kann sofort gezeichnet werden.
 
-   Hier hängen außerdem die übergreifenden Schließen-Gesten: Klick auf den
-   abgedunkelten Hintergrund und die Escape-Taste. */
+   Hier hängen außerdem die übergreifenden Schließen-Gesten: Klick neben einen
+   aufgeklappten Ordner und die Escape-Taste. */
 
 import { getQuery, resetSearch, initSearch } from "./search.js";
 import { initImport } from "./importexport.js";
-import { buildDock, getSheetToolId, closeToolWindow } from "./toolwindows.js";
+import { getTools, closeTopToolWindow } from "./toolwindows.js";
 import { render, closeFolder, getOpenFolderId } from "./render.js";
-import { ensureColors } from "./store.js";
+import { ensureColors, ensureToolTiles } from "./store.js";
 
-const backdrop = document.getElementById("backdrop");
-
-/* Der abgedunkelte Hintergrund gehört nur noch den Werkzeug-Sheets —
-   Ordner klappen im Raster auf und brauchen ihn nicht. */
-backdrop.addEventListener("click", () => {
-  if (getSheetToolId()) closeToolWindow(getSheetToolId());
+/* Klick irgendwo daneben klappt den offenen Ordner wieder zu. Ausgenommen sind
+   der Ordner selbst, seine Kachel, Menüs/Dialoge, offene Werkzeug-Fenster und
+   die Suchleiste — dort klickt man aus einem anderen Grund. */
+const KEEP_OPEN = ".folder-panel, .tile.folder, .tile-menu, dialog, .tool-window, .bottombar, #cmdLayer";
+document.addEventListener("click", (e) => {
+  if (!getOpenFolderId()) return;
+  if (e.target.closest(KEEP_OPEN)) return;
+  closeFolder();
 });
 
-/* Escape schließt der Reihe nach: Werkzeug-Sheet → offener Ordner → Suche.
-   (Dialoge und das Kachelmenü fangen Escape selbst ab, bevor es hier ankommt.) */
+/* Escape schließt der Reihe nach: oberstes Werkzeug-Fenster → offener Ordner →
+   Suche. (Dialoge und das Kachelmenü fangen Escape selbst ab, bevor es hier
+   ankommt.) */
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
-  if (getSheetToolId()) closeToolWindow(getSheetToolId());
-  else if (getOpenFolderId()) closeFolder();
-  else if (getQuery()) resetSearch();
+  if (closeTopToolWindow()) return;
+  if (closeFolder()) return;
+  if (getQuery()) resetSearch();
 });
 
 initSearch();
 initImport();
-buildDock();
+/* Zu jedem Werkzeug aus tools.js gehört eine Kachel auf der Wand. */
+ensureToolTiles(getTools());
 render();
 if (window.lucide) lucide.createIcons();
 

@@ -22,9 +22,6 @@
     </main>
   </div>
 
-  <!-- Abgedunkelter Hintergrund — gehört nur den Werkzeug-Sheets. -->
-  <div class="sheet-backdrop" id="backdrop"></div>
-
   <div class="drop-veil" id="dropVeil">
     <div class="drop-card">
       <i data-lucide="file-down" class="drop-ico"></i>
@@ -33,16 +30,14 @@
     </div>
   </div>
 
-  <!-- Feste Leiste unten: Suche + Menü-Knopf teilen sich die Breite -->
+  <!-- Feste Leiste unten: nur die Suche. Alles andere (anlegen, importieren,
+       sichern, Werkzeuge) läuft über die Slash-Befehle bzw. die Kacheln. -->
   <div class="bottombar" id="bottombar">
     <div class="searchbar hidden" id="searchbar">
       <i data-lucide="search" class="search-ico"></i>
       <input id="searchInput" type="search" placeholder="Suchen…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
       <button class="search-clear" id="searchClear" aria-label="Suche beenden"><i data-lucide="x"></i></button>
     </div>
-    <!-- Ein einziger Menü-Knopf: Bookmark-Verwaltung + Werkzeuge (tools.js).
-         Aufgebaut in toolwindows.js. -->
-    <div class="tools-dock" id="toolsDock"></div>
   </div>
 
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>

@@ -53,7 +53,7 @@ function onPointerDown(e) {
   if (st) return;                                   // schon eine Geste aktiv
   if (e.pointerType === "mouse" && e.button !== 0) return;  // nur linke Maustaste
   const tile = e.target.closest(".tile");
-  if (!tile || tile.classList.contains("add-tile")) return;
+  if (!tile) return;
   const grid = e.currentTarget;
 
   st = {
@@ -199,7 +199,7 @@ function hitTest() {
   const panel = el.closest(".folder-panel");
 
   // Über einer fremden Kachel? (Die eigene und der Platzhalter zählen nicht.)
-  if (over && over !== st.tile && over !== st.ph && !over.classList.contains("add-tile")) {
+  if (over && over !== st.tile && over !== st.ph) {
     const r = over.getBoundingClientRect();
     const cx = (st.x - r.left) / r.width;
     const cy = (st.y - r.top) / r.height;
@@ -221,18 +221,16 @@ function hitTest() {
   clearHot();
 
   // Über der freien Fläche eines aufgeklappten Ordners → hineinlegen.
+  // (Der Ordner ist selbst das Raster, es gibt kein Feld drumherum mehr.)
   if (panel && st.tile.dataset.type !== "folder") {
-    const fpGrid = panel.querySelector(".fp-grid");
-    if (fpGrid && st.ph.parentElement !== fpGrid) {
-      flip(() => fpGrid.appendChild(st.ph));
-    }
+    if (st.ph.parentElement !== panel) flip(() => panel.appendChild(st.ph));
     return;
   }
 
   // Über der freien Fläche der Kachelwand → ans Ende der obersten Ebene.
   const grid = st.grid;
   if (el.closest(".tile-grid") && st.ph.parentElement !== grid) {
-    flip(() => grid.insertBefore(st.ph, grid.querySelector(".add-tile")));
+    flip(() => grid.appendChild(st.ph));
   }
 }
 
@@ -310,9 +308,7 @@ function startAutoScroll() {
 function readIds(parent, directOnly) {
   const list = directOnly ? [...parent.children] : [...parent.querySelectorAll(":scope > .tile")];
   return list
-    .filter((el) => el.classList.contains("tile")
-      && !el.classList.contains("add-tile")
-      && !el.classList.contains("is-dragging"))
+    .filter((el) => el.classList.contains("tile") && !el.classList.contains("is-dragging"))
     .map((el) => el.dataset.id);
 }
 
@@ -324,7 +320,7 @@ function commitOrder() {
   let folderId = null, folderIds = null;
   if (panel) {
     folderId = panel.dataset.panel;
-    folderIds = readIds(panel.querySelector(".fp-grid"), true);
+    folderIds = readIds(panel, true);
   }
   applyOrder(topIds, folderId, folderIds);
 }

@@ -9,9 +9,9 @@
     --radius-sm: 0.25rem;
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
-    --color-cream: #FDFBF7;
-    --color-cream-dim: #F4EFE4;
-    --color-paper: #FFFEFB;
+    --color-cream: #EFE6D3;
+    --color-cream-dim: #E4D8BF;
+    --color-paper: #FBF6EC;
     --color-ink: #1A1A1A;
     --color-ink-soft: #4B4a44;
     --color-ink-mute: #8B857A;
@@ -289,7 +289,7 @@ body {
 }
 :root {
   --unit: clamp(84px, 21vw, 120px);
-  --gap: clamp(6px, 1.2vw, 12px);
+  --gap: clamp(4px, 0.7vw, 7px);
 }
 .tile-grid {
   display: grid;
@@ -313,7 +313,7 @@ body {
   color: #fff;
   background: var(--tile, #4B4A44);
   border: var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
   user-select: none;
@@ -444,31 +444,26 @@ body {
   box-shadow: var(--pop);
   transform: translate(-2px, -2px);
 }
-.add-tile {
-  background: transparent;
-  border: 2px dashed rgba(26, 26, 26, 0.3);
-  color: var(--color-ink-mute);
+.tile.tool .tile-face i, .tile.tool .tile-face svg {
+  width: calc(var(--unit) * 0.4);
+  height: calc(var(--unit) * 0.4);
+  color: #fff;
+  stroke-width: 1.6;
 }
-.add-tile::after {
-  display: none;
-}
-.add-tile:hover {
-  background: var(--color-sun-soft);
-  border-style: solid;
-  border-color: var(--color-ink);
-  color: var(--color-ink);
-}
-.add-tile .tile-face i, .add-tile .tile-face svg {
-  width: 26px;
-  height: 26px;
+.size-l.tool .tile-face i, .size-l.tool .tile-face svg {
+  width: calc(var(--unit) * 0.62);
+  height: calc(var(--unit) * 0.62);
 }
 .folder-panel {
   grid-column: 1 / -1;
-  background: var(--color-cream-dim);
-  border: var(--line);
-  border-radius: var(--radius-sm);
-  padding: 12px clamp(12px, 2vw, 18px) clamp(14px, 2vw, 18px);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, var(--unit));
+  grid-auto-rows: var(--unit);
+  gap: var(--gap);
   animation: fp-in 0.26s var(--ease);
+}
+.folder-panel.is-closing {
+  animation: fp-out 0.24s var(--ease) forwards;
 }
 @keyframes fp-in {
   from {
@@ -480,55 +475,18 @@ body {
     transform: none;
   }
 }
-.fp-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.fp-title {
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: var(--color-ink);
-}
-.fp-count {
-  margin-right: auto;
-  font-size: 0.66rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: var(--color-ink-mute);
-}
-.fp-btn {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: var(--line);
-  background: var(--color-paper);
-  color: var(--color-ink);
-  cursor: pointer;
-  transition: background 0.18s var(--ease), transform 0.18s var(--ease);
-}
-.fp-btn:hover {
-  background: var(--color-sun-soft);
-}
-.fp-close:hover {
-  transform: rotate(90deg);
-}
-.fp-btn i, .fp-btn svg {
-  width: 15px;
-  height: 15px;
-}
-.fp-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, var(--unit));
-  grid-auto-rows: var(--unit);
-  gap: var(--gap);
+@keyframes fp-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
 }
 .fp-empty {
+  grid-column: 1 / -1;
   font-size: 0.88rem;
   color: var(--color-ink-mute);
   line-height: 1.6;
@@ -687,20 +645,6 @@ body.tile-dragging {
     border-radius: var(--radius-sm);
     padding: 12px 14px;
   }
-}
-.sheet-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  background: rgba(26, 26, 26, 0.32);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.32s var(--ease), visibility 0s linear 0.32s;
-}
-.sheet-backdrop.open {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.32s var(--ease);
 }
 dialog.dlg {
   margin: auto;
@@ -1091,121 +1035,6 @@ dialog.dlg::backdrop {
   width: 17px;
   height: 17px;
 }
-.tools-dock {
-  position: relative;
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.tool-dock-btn {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--color-sun);
-  border: var(--line);
-  color: var(--color-ink);
-  cursor: pointer;
-  transition: transform .2s var(--ease), box-shadow .2s var(--ease);
-}
-.tool-dock-btn:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: var(--pop);
-}
-.tool-dock-btn.active {
-  transform: translate(-2px, -2px);
-  box-shadow: var(--pop);
-}
-.tool-dock-btn i, .tool-dock-btn svg {
-  width: 22px;
-  height: 22px;
-}
-.dock-menu {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 12px);
-  min-width: 190px;
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  border-radius: var(--radius-sm);
-  background: var(--color-paper);
-  border: var(--line);
-  box-shadow: var(--pop);
-  z-index: 40;
-  transform-origin: bottom right;
-  opacity: 0;
-  transform: translateY(8px) scale(0.96);
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity .2s var(--ease), transform .2s var(--ease), visibility 0s linear .2s;
-}
-.dock-menu.open {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  visibility: visible;
-  pointer-events: auto;
-  transition: opacity .22s var(--ease), transform .22s var(--ease);
-}
-.dock-menu.open .dock-menu-item {
-  animation: dock-item-in .28s var(--ease) both;
-}
-.dock-menu.open .dock-menu-item:nth-child(2) {
-  animation-delay: .04s;
-}
-.dock-menu.open .dock-menu-item:nth-child(3) {
-  animation-delay: .08s;
-}
-.dock-menu.open .dock-menu-item:nth-child(4) {
-  animation-delay: .12s;
-}
-@keyframes dock-item-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.dock-menu-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid transparent;
-  border-radius: 12px;
-  background: none;
-  color: var(--color-ink-soft);
-  font: inherit;
-  font-size: 0.92rem;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-  transition: color .2s var(--ease), background .2s var(--ease), border-color .2s var(--ease);
-}
-.dock-menu-item:hover {
-  color: var(--color-ink);
-  background: var(--color-sun-soft);
-  border-color: var(--color-ink);
-}
-.dock-menu-item i, .dock-menu-item svg {
-  width: 18px;
-  height: 18px;
-  flex: none;
-}
-.dock-menu-sep {
-  height: 1px;
-  margin: 4px 6px;
-  background: var(--color-ink);
-  opacity: 0.25;
-}
 .tool-window {
   position: fixed;
   z-index: 60;
@@ -1213,6 +1042,8 @@ dialog.dlg::backdrop {
   left: 50%;
   display: flex;
   flex-direction: column;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100dvh - 16px);
   background: var(--color-cream);
   border: var(--line);
   border-radius: var(--radius-sm);
@@ -1294,51 +1125,6 @@ dialog.dlg::backdrop {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-}
-.tw-handle {
-  flex: none;
-  width: 44px;
-  height: 5px;
-  border-radius: 999px;
-  background: var(--color-ink);
-  opacity: 0.35;
-  margin: 12px auto 2px;
-  cursor: grab;
-  touch-action: none;
-}
-.tool-window.as-sheet.dragging .tw-handle {
-  cursor: grabbing;
-}
-.tool-window.as-sheet {
-  top: auto;
-  bottom: 0;
-  left: 50%;
-  right: auto;
-  width: min(720px, 100%);
-  height: auto;
-  max-height: 86dvh;
-  transform: translate(-50%, 130%);
-  border-radius: var(--radius) var(--radius) 0 0;
-  border-bottom: 0;
-  box-shadow: none;
-  transition: transform 0.42s var(--ease);
-}
-.tool-window.as-sheet .tw-bar {
-  background: transparent;
-  border-bottom: 0;
-}
-.tool-window.as-sheet.open {
-  transform: translate(-50%, 0);
-}
-.tool-window.as-sheet.dragging {
-  transition: none;
-}
-@media (min-width: 720px) {
-  .tool-window.as-sheet {
-    bottom: clamp(12px, 4vh, 40px);
-    border-radius: var(--radius);
-    border-bottom: var(--line);
-  }
 }
 .calc {
   display: flex;

@@ -26,6 +26,25 @@ export function tileHTML(bm) {
     </a>`;
 }
 
+/* ---- Werkzeug-Kachel (Rechner, Arbeitszeit, PDF-Duplex …) ---- */
+/* Sieht aus wie eine Bookmark-Kachel, öffnet aber ein Werkzeug-Fenster.
+   Deshalb ein <button> statt eines Links. */
+export function toolTileHTML(t) {
+  const name = t.name || "Werkzeug";
+  return `
+    <button class="tile tool ${sizeClass(t.size)}" data-id="${escAttr(t.id)}" data-type="tool"
+            data-tool="${escAttr(t.toolId)}"
+            style="--tile:${escAttr(t.color || DEFAULT_TILE_COLOR)}" title="${escAttr(name)}">
+      <span class="tile-face"><i data-lucide="${escAttr(t.icon || "wrench")}"></i></span>
+      <span class="tile-name">${esc(name)}</span>
+    </button>`;
+}
+
+/* Eine Kachel im Raster — je nach Art Bookmark oder Werkzeug. */
+export function leafTileHTML(it) {
+  return it.type === "tool" ? toolTileHTML(it) : tileHTML(it);
+}
+
 /* ---- Mini-Icon in der Ordner-Vorschau ---- */
 function miniHTML(bm) {
   if (!bm) return `<span class="mini empty"></span>`;
@@ -55,29 +74,17 @@ export function folderTileHTML(f) {
 /* ---- Aufgeklappter Ordner (öffnet sich an Ort und Stelle im Raster) ---- */
 /* Das Feld spannt sich über alle Spalten. Dadurch schiebt es das CSS-Raster
    automatisch in die Zeile UNTER der Ordner-Kachel — genau wie am Handy-
-   Homescreen, ohne dass wir Zeilen ausrechnen müssen. */
+   Homescreen, ohne dass wir Zeilen ausrechnen müssen.
+   Bewusst OHNE Kopfzeile, Rahmen und Knöpfe: es sind nur die Kacheln zu sehen,
+   im selben Raster wie die Hauptansicht. Umbenennen, Auflösen, Löschen und
+   „Bookmark hier anlegen" stehen im Menü der Ordner-Kachel (Rechtsklick bzw.
+   langer Druck). */
 export function folderPanelHTML(f) {
   const links = f.items || [];
-  const n = links.length;
-  const inner = n
-    ? links.map(tileHTML).join("")
-    : `<p class="fp-empty">Dieser Ordner ist leer. Zieh eine Kachel hinein oder lege hier ein Bookmark an.</p>`;
-  return `
-    <div class="folder-panel" data-panel="${escAttr(f.id)}" style="--tile:${escAttr(f.color || DEFAULT_TILE_COLOR)}">
-      <div class="fp-head">
-        <span class="fp-title">${esc(f.name || "Ordner")}</span>
-        <span class="fp-count">${n} ${n === 1 ? "Link" : "Links"}</span>
-        <button class="fp-btn" data-fp-action="add" title="Bookmark in diesen Ordner legen">
-          <i data-lucide="plus"></i></button>
-        <button class="fp-btn" data-fp-action="rename" title="Ordner umbenennen">
-          <i data-lucide="pencil"></i></button>
-        <button class="fp-btn" data-fp-action="dissolve" title="Ordner auflösen (Inhalt bleibt erhalten)">
-          <i data-lucide="folder-open"></i></button>
-        <button class="fp-btn fp-close" data-fp-action="close" aria-label="Schließen">
-          <i data-lucide="x"></i></button>
-      </div>
-      <div class="fp-grid">${inner}</div>
-    </div>`;
+  const inner = links.length
+    ? links.map(leafTileHTML).join("")
+    : `<p class="fp-empty">Dieser Ordner ist leer. Zieh eine Kachel hinein oder lege über das Kachelmenü ein Bookmark an.</p>`;
+  return `<div class="folder-panel" data-panel="${escAttr(f.id)}">${inner}</div>`;
 }
 
 /* ---- Sucht ein Bookmark anhand Name/URL ---- */

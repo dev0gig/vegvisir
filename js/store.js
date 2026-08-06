@@ -10,7 +10,8 @@
  *     exportedAt: "…"|null,    Zeitpunkt der letzten Sicherung (fuer den Hinweis)
  *     items: [                 EINE geordnete Liste — die Reihenfolge ist die Anzeige
  *       { id, type:"bookmark", name, url, imageUrl, color, size, isFavorite },
- *       { id, type:"folder",   name, color, size, items:[ …bookmarks… ] }
+ *       { id, type:"tool",     toolId, name, icon, color, size },
+ *       { id, type:"folder",   name, color, size, items:[ …bookmarks/tools… ] }
  *     ]
  *   }
  *
@@ -30,6 +31,10 @@ const UNDO_MAX = 2;
 
 export const SIZES = ["s", "w", "l"];
 export const SIZE_LABELS = { s: "Klein", w: "Breit", l: "Groß" };
+
+/* Einheitliche Farbe der Werkzeug-Kacheln — sie haben kein Favicon, aus dem
+   sich eine Farbe ableiten ließe, und sollen als Gruppe erkennbar sein. */
+export const TOOL_TILE_COLOR = "#4B4A44";
 
 function emptyData() {
   return { version: 2, updatedAt: new Date().toISOString(), exportedAt: null, items: [] };
@@ -129,11 +134,33 @@ function normalizeItem(raw) {
       name: String(raw.name || "Ordner"),
       color: raw.color || null,
       size: SIZES.includes(raw.size) ? raw.size : "s",
-      // Ordner im Ordner gibt es nicht: alles darin wird zum Bookmark.
-      items: inner.map((b) => normalizeBookmark(b)).filter(Boolean),
+      // Ordner im Ordner gibt es nicht: alles darin ist Bookmark oder Werkzeug.
+      items: inner.map((b) => normalizeLeaf(b)).filter(Boolean),
     };
   }
+  return normalizeLeaf(raw);
+}
+
+/* Alles, was in einem Ordner liegen darf: Bookmark oder Werkzeug. */
+function normalizeLeaf(raw) {
+  if (raw && raw.type === "tool") return normalizeTool(raw);
   return normalizeBookmark(raw);
+}
+
+/* Werkzeug-Kachel. `toolId` verweist auf einen Eintrag aus tools.js —
+   Name und Icon werden beim Start von dort aufgefrischt (ensureToolTiles). */
+function normalizeTool(raw) {
+  const toolId = String(raw.toolId || "").trim();
+  if (!toolId) return null;
+  return {
+    id: raw.id || "tool-" + toolId,
+    type: "tool",
+    toolId,
+    name: String(raw.name || toolId),
+    icon: String(raw.icon || "wrench"),
+    color: raw.color || TOOL_TILE_COLOR,
+    size: SIZES.includes(raw.size) ? raw.size : "s",
+  };
 }
 
 function normalizeBookmark(raw) {
@@ -152,7 +179,46 @@ function normalizeBookmark(raw) {
   };
 }
 
-export { normalizeItem, normalizeBookmark };
+export { normalizeItem, normalizeBookmark, normalizeTool };
+
+/* ---- Werkzeug-Kacheln mit tools.js abgleichen ---- */
+
+/* Sorgt dafür, dass es zu jedem Werkzeug aus tools.js GENAU EINE Kachel gibt:
+   fehlende werden hinten angehängt, doppelte und verwaiste (Werkzeug gibt es
+   nicht mehr) verschwinden, Name und Icon kommen frisch aus tools.js.
+   Wo die Kachel liegt und wie groß sie ist, bleibt unangetastet. */
+export function ensureToolTiles(tools) {
+  const list = Array.isArray(tools) ? tools : [];
+  const byId = new Map(list.map((t) => [t.id, t]));
+  const data = getData();
+  const seen = new Set();
+  let changed = false;
+
+  const sweep = (arr) => {
+    for (let i = arr.length - 1; i >= 0; i--) {
+      const it = arr[i];
+      if (it.type !== "tool") continue;
+      const tool = byId.get(it.toolId);
+      if (!tool || seen.has(it.toolId)) { arr.splice(i, 1); changed = true; continue; }
+      seen.add(it.toolId);
+      const name = tool.name || it.toolId;
+      const icon = tool.icon || "wrench";
+      if (it.name !== name || it.icon !== icon) { it.name = name; it.icon = icon; changed = true; }
+    }
+  };
+
+  sweep(data.items);
+  data.items.forEach((it) => { if (it.type === "folder") sweep(it.items); });
+
+  list.forEach((t) => {
+    if (seen.has(t.id)) return;
+    data.items.push(normalizeTool({ toolId: t.id, name: t.name, icon: t.icon }));
+    changed = true;
+  });
+
+  if (changed) save(data);
+  return changed;
+}
 
 /* ---- Suchen / Auslesen ---- */
 
@@ -170,12 +236,13 @@ export function findItem(id) {
   return null;
 }
 
-/* Alle Bookmarks flach (oberste Ebene + alle Ordnerinhalte) — für die Suche. */
+/* Alle Bookmarks flach (oberste Ebene + alle Ordnerinhalte) — für die Suche.
+   Werkzeuge bleiben draußen: die ruft man über die Slash-Befehle auf. */
 export function allBookmarks() {
   const out = [];
   getData().items.forEach((it) => {
-    if (it.type === "folder") it.items.forEach((b) => out.push(b));
-    else out.push(it);
+    if (it.type === "folder") it.items.forEach((b) => { if (b.type === "bookmark") out.push(b); });
+    else if (it.type === "bookmark") out.push(it);
   });
   return out;
 }
@@ -287,7 +354,7 @@ export function moveItem(id, { beforeId = null, into = null, toEnd = false } = {
 
   if (into) {
     const f = data.items.find((it) => it.id === into && it.type === "folder");
-    if (f && moved.type === "bookmark") {
+    if (f && moved.type !== "folder") {
       f.items.push(moved);
       save();
       return true;
@@ -339,7 +406,7 @@ export function applyOrder(topIds, folderId, folderIds) {
   // Den Ordnerinhalt zuerst festlegen: so ist klar, welche Bookmarks drinnen
   // bleiben und welche für die oberste Ebene noch frei sind.
   if (folder && Array.isArray(folderIds)) {
-    folder.items = folderIds.map(take).filter((b) => b && b.type === "bookmark");
+    folder.items = folderIds.map(take).filter((b) => b && b.type !== "folder");
   }
 
   const top = (topIds || []).map(take).filter(Boolean);
