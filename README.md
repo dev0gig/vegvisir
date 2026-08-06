@@ -72,6 +72,28 @@ npm run css:watch  # dito, baut bei jeder Änderung neu
 **Wichtig:** Nie `styles.css` direkt bearbeiten, immer die Quelle unter `src/`
 ändern und neu bauen (sonst überschreibt der nächste Build die Änderung).
 
+## Als App installieren (PWA)
+
+Vegvisir lässt sich über den Browser („Zum Startbildschirm hinzufügen" bzw.
+„App installieren") wie eine normale App ablegen: eigenes Icon, eigener
+Fensterrahmen ohne Browserleiste, **und sie läuft ohne Netz** — die Bookmarks
+liegen sowieso im Browser, und der Service Worker (`sw.js`) hat App-Gerüst,
+Schriften und Icons gespeichert.
+
+- `manifest.webmanifest` — Name, Farben, Icons.
+- `sw.js` — Cache. Seitenaufruf: erst Netz, sonst Cache. Alles andere: sofort
+  aus dem Cache und im Hintergrund erneuern (neue Version ist beim übernächsten
+  Start da). Bei größeren Umbauten in `sw.js` die Zeile `const CACHE` hochzählen.
+- Icons neu erzeugen: `npm i --no-save sharp && node scripts/gen-icons.mjs`
+  (Symbolgröße wird dabei nachgemessen: 41,7 % normal, 55 % maskable).
+
+## Veröffentlichen
+
+Das Repo liegt **nur auf GitHub** (`dev0gig/vegvisir`, öffentlich). **Push auf
+`main` = live** unter https://dev0gig.github.io/vegvisir/ — GitHub Pages baut
+direkt aus dem Branch (deshalb die leere `.nojekyll`, ein Build dauert ~30–45 s).
+Einen Umweg über Forgejo gibt es seit 6.8.2026 nicht mehr.
+
 ## Lokal starten
 
 ```

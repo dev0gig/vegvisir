@@ -10,6 +10,14 @@
 <!-- Favicon -->
 <link rel="icon" type="image/png" href="./assets/favicon.png" />
 
+<!-- Installierbar (PWA) -->
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Vegvisir" />
+
 <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -40,7 +48,8 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- Lucide liegt lokal im Repo, damit die App auch ohne Netz vollständig ist. -->
+  <script src="./js/vendor/lucide.min.js"></script>
   <script src="./tools.js"></script>
   <script type="module" src="./js/main.js"></script>
 </body>

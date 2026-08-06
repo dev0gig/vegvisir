@@ -1,0 +1,19 @@
+{
+  "name": "Vegvisir",
+  "short_name": "Vegvisir",
+  "description": "Eine persönliche Bookmark-Sammlung. Find your way.",
+  "lang": "de",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#EFE6D3",
+  "theme_color": "#D4A373",
+  "icons": [
+    { "src": "./assets/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
+    { "src": "./assets/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },
+    { "src": "./assets/icon-maskable-512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ]
+}

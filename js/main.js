@@ -43,3 +43,13 @@ if (window.lucide) lucide.createIcons();
    danach steht die Farbe in den Daten. Beim ersten Start nach dem Import
    tauchen die Farben dadurch nach und nach auf. */
 ensureColors(render);
+
+/* Service Worker anmelden: macht Vegvisir installierbar und offline nutzbar.
+   Läuft nur über http(s) — beim Öffnen per file:// gibt es ihn nicht. */
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch((err) =>
+      console.warn("Service Worker nicht angemeldet:", err)
+    );
+  });
+}
