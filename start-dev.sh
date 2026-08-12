@@ -16,7 +16,10 @@ if command -v tailscale >/dev/null 2>&1; then
     TS_NAME="$(tailscale status --json 2>/dev/null \
         | python3 -c 'import sys,json; print(json.load(sys.stdin)["Self"]["DNSName"].rstrip("."))' 2>/dev/null || true)"
 fi
-[ -z "$TS_NAME" ] && TS_NAME="odin.taild4757f.ts.net"
+# Fallback, falls Tailscale nicht antwortet: eigene Adresse per Umgebungsvariable
+# setzen (z. B. VEGVISIR_TS_NAME=meinserver.beispiel.ts.net ./start-dev.sh).
+# Bewusst nicht fest eingetragen — dieses Repo ist auf GitHub öffentlich.
+[ -z "$TS_NAME" ] && TS_NAME="${VEGVISIR_TS_NAME:-<dein-rechner>.ts.net}"
 
 echo "────────────────────────────────────────────────"
 echo "  vegvisir Dev-Server läuft 🚀"
