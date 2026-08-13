@@ -1,9 +1,9 @@
 /* ============================================================
    VEGVISIR — Design-Quelle (Tailwind v4)
-   Neo-Minimalismus / Pastell-Retro (Wegvisier-Spec v2, Abschnitt 7):
-   warmes Creme als Fläche, dünne Anthrazit-Konturen statt Schatten,
-   stark abgerundete Formen, warmes Gelb als Akzent, gedeckte Pastell-
-   farben für die Dienst-Kategorien.
+   Warm-dunkles Metro-Design (seit 13.8.2026):
+   dunkle, warme Flächen (kein helles Theme!), kantige Formen ganz OHNE
+   Rundungen — echtes Windows-8-Metro. Dünne warme Konturlinien statt
+   Schatten, warmes Gelb als Akzent.
 
    Bauen:  npm run css   (erzeugt ../styles.css — die wird ausgeliefert)
    ============================================================ */
@@ -36,38 +36,42 @@
 @theme {
   --font-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-  /* Flächen — warmer Papyrus-Ton, bewusst nicht grell */
-  --color-cream: #EFE6D3;      /* Grundfläche (Papyrus) */
-  --color-cream-dim: #E4D8BF;  /* leicht abgesetzte Füllung */
-  --color-paper: #FBF6EC;      /* Karten/Eingaben (hellster Ton) */
+  /* Flächen — warm-dunkel, von tief (Grund) nach leicht angehoben */
+  --color-cream: #1B1815;      /* Grundfläche (Name historisch) */
+  --color-cream-dim: #2B251E;  /* leicht abgesetzte Füllung, Titelleisten */
+  --color-paper: #242019;      /* Karten/Eingaben */
 
-  /* Kontur & Text */
-  --color-ink: #1A1A1A;        /* Konturlinien, Primärtext */
-  --color-ink-soft: #4B4a44;   /* Sekundärtext */
-  --color-ink-mute: #8B857A;   /* gedämpfter Text, Labels */
+  /* Kontur & Text (hell auf dunkel) */
+  --color-ink: #EDE6D9;        /* Primärtext */
+  --color-ink-soft: #C7BDAC;   /* Sekundärtext */
+  --color-ink-mute: #8F8678;   /* gedämpfter Text, Labels */
+  --color-line: #3E362B;       /* Konturlinien */
 
-  /* Akzent */
-  --color-sun: #F5C84C;        /* warmes Gelb (interaktive Akzente) */
-  --color-sun-soft: #FBEDC5;   /* Gelb-Hauch für Hover */
+  /* Akzent — warmes Gelb; darauf steht immer DUNKLE Schrift */
+  --color-sun: #F5C84C;
+  --color-sun-ink: #1F1A10;    /* Text auf Gelb */
+  --color-sun-soft: #3B321D;   /* Gelb-Hauch für Hover (dunkel) */
 
-  /* Dienst-Kategorien (Muted Pastels) */
-  --color-wiwo: #F3A694;       /* Wiener Wohnen — Lachs/Pfirsich */
-  --color-erdberg: #A3C9A8;    /* Erdberg Servicepoint — Salbei/Mint */
-  --color-spittelau: #C3B1E1;  /* Spittelau — Flieder/Lavendel */
-  --color-flexi: #DDEBD5;      /* Flexi/Home Office — sehr sanftes Grün */
-  --color-dienst: #EFE9DB;     /* Standard-Dienst — neutraler Ton */
+  /* Kategorien (gedämpft, dunkel-tauglich) */
+  --color-wiwo: #6B3A2C;       /* Rot-Ton für Gefahr-Hover */
+  --color-erdberg: #35503B;
+  --color-spittelau: #453B5C;
+  --color-flexi: #2E3A2C;
+  --color-dienst: #2A2620;
 
   /* Status */
-  --color-ok: #4C7A54;
-  --color-err: #B3502E;
+  --color-ok: #8FBF95;
+  --color-err: #E58B63;
 }
 
-/* Nicht-Farb-Konstanten (bewusst normale Custom-Properties). */
+/* Nicht-Farb-Konstanten (bewusst normale Custom-Properties).
+   KEINE Rundungen mehr — Metro ist eckig. Die Variablen bleiben stehen,
+   damit alte Regeln nicht brechen, stehen aber fest auf 0. */
 :root {
-  --radius: 24px;       /* rounded-3xl — Container */
-  --radius-sm: 16px;    /* rounded-2xl — kleinere Elemente */
-  --line: 1px solid var(--color-ink);
-  --pop: 3px 3px 0 var(--color-ink); /* harter Versatz-„Schatten" für Schwebendes */
+  --radius: 0px;
+  --radius-sm: 0px;
+  --line: 1px solid var(--color-line);
+  --pop: 3px 3px 0 rgba(0, 0, 0, 0.55); /* harter Versatz-„Schatten" für Schwebendes */
   --maxw: 1240px;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -86,6 +90,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  color-scheme: dark;
 }
 
 /* Scrollbalken unsichtbar — Scrollen bleibt überall möglich */
@@ -101,6 +106,19 @@ body {
 }
 
 :is(button, a, input):focus-visible { outline: 2px solid var(--color-ink); outline-offset: 2px; }
+
+/* ============ GRUPPEN-ÜBERSCHRIFTEN (Favoriten / Werkzeuge) ============ */
+.section-title {
+  display: block; max-width: var(--maxw); margin: 0 auto 12px; padding: 0 4px;
+  text-align: center;
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--color-ink-mute);
+}
+.tools-grid { margin-bottom: 0; }
+#homeGrid .tools-grid { margin-top: 0; }
+#homeGrid > .tile-grid, #homeGrid > .empty-home { margin-bottom: clamp(28px, 5vw, 48px); }
+#homeGrid > :last-child { margin-bottom: 0; }
 
 /* ============ KACHELWAND (Windows-Metro-Stil) ============ */
 /* Das Raster hat eine feste Kachel-Grundgröße (--unit). Dadurch sind die
@@ -133,7 +151,6 @@ body {
   color: #fff;
   background: var(--tile, #4B4A44);
   border: var(--line);
-  border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
   user-select: none; -webkit-tap-highlight-color: transparent;
@@ -188,32 +205,29 @@ body {
 .size-l.folder .folder-preview { width: 46%; }
 .mini {
   position: relative; overflow: hidden;
-  border-radius: 22%;
   background: rgba(255, 255, 255, 0.9);
 }
 .mini .mini-mono {
   position: absolute; inset: 0;
   display: grid; place-items: center;
-  font-weight: 700; font-size: calc(var(--unit) * 0.11); color: var(--color-ink);
+  font-weight: 700; font-size: calc(var(--unit) * 0.11); color: #1A1A1A;
 }
 .mini img { position: absolute; inset: 12%; width: 76%; height: 76%; object-fit: contain; }
 .mini.empty { background: rgba(255, 255, 255, 0.22); }
 
-/* Anzahl der Links als kleine Sprechblase */
+/* Anzahl der Links als kleines Eck-Schild */
 .tile-count {
   position: absolute; top: 6px; right: 6px; z-index: 1;
   min-width: 19px; height: 19px; padding: 0 5px;
   display: grid; place-items: center;
-  border-radius: 999px;
   background: rgba(0, 0, 0, 0.4);
   font-size: 0.62rem; font-weight: 700; color: #fff;
 }
 .tile.folder.is-open { box-shadow: var(--pop); transform: translate(-2px, -2px); }
 
 /* ---- Werkzeug-Kachel ---- */
-/* Die Werkzeuge aus tools.js stehen als eigene Kacheln auf der Wand. Sie
-   verhalten sich wie Bookmarks (verschieben, Größe, in Ordner legen), nur
-   löschen kann man sie nicht — sonst wäre der Rechner unauffindbar. */
+/* Die Werkzeuge aus tools.js stehen als eigene, feste Gruppe unter den
+   Favoriten — ohne Ziehen, ohne Menü. */
 .tile.tool .tile-face i, .tile.tool .tile-face svg {
   width: calc(var(--unit) * 0.4); height: calc(var(--unit) * 0.4);
   color: #fff; stroke-width: 1.6;
@@ -264,7 +278,7 @@ body.tile-dragging { cursor: grabbing; user-select: none; }
 /* Die Lücke, die durchs Raster wandert */
 .tile-placeholder {
   background: transparent;
-  border: 2px dashed rgba(26, 26, 26, 0.32);
+  border: 2px dashed rgba(237, 230, 217, 0.35);
   pointer-events: none;
 }
 .tile-placeholder::after { display: none; }
@@ -274,14 +288,13 @@ body.tile-dragging { cursor: grabbing; user-select: none; }
   position: fixed; left: 0; top: 0; z-index: 200;
   pointer-events: none;
   scale: 1.06;
-  box-shadow: 0 14px 30px rgba(26, 26, 26, 0.4);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.55);
   opacity: 0.95;
 }
 
 /* Halten über der Mitte: der Ring baut sich über 0,7 s auf. */
 .tile.merge-hot::before {
   content: ""; position: absolute; inset: 0; z-index: 1;
-  border-radius: inherit;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.12));
   transform: scale(0);
   animation: merge-fill 700ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -294,10 +307,10 @@ body.tile-dragging { cursor: grabbing; user-select: none; }
 .tile.merge-ready { animation: merge-pop 0.3s var(--ease); }
 @keyframes merge-pop { 50% { scale: 1.09; } }
 
-/* ============ LEERE SEITE / KEINE TREFFER ============ */
+/* ============ LEERE GRUPPE / KEINE TREFFER ============ */
 .empty-home {
   display: flex; flex-direction: column; align-items: center; gap: 20px;
-  padding: clamp(40px, 10vw, 90px) 16px;
+  padding: clamp(28px, 6vw, 60px) 16px;
   text-align: center; color: var(--color-ink-soft);
 }
 .empty-home .eh-ico { width: 54px; height: 54px; color: var(--color-ink-mute); }
@@ -306,68 +319,43 @@ body.tile-dragging { cursor: grabbing; user-select: none; }
 .btn-import {
   display: inline-flex; align-items: center; gap: 9px;
   font: inherit; font-weight: 700; letter-spacing: 0.04em;
-  color: var(--color-ink);
+  color: var(--color-sun-ink);
   background: var(--color-sun);
-  border: var(--line); padding: 12px 22px; border-radius: 999px; cursor: pointer;
+  border: var(--line); padding: 12px 22px; cursor: pointer;
   transition: transform .2s var(--ease), box-shadow .2s var(--ease);
 }
 .btn-import:hover { transform: translate(-2px, -2px); box-shadow: var(--pop); }
-.btn-import.ghost { background: var(--color-paper); }
 .btn-import i { width: 18px; height: 18px; }
-
-/* ============ SICHERUNGS-HINWEIS ============ */
-/* Die Daten liegen NUR in diesem Browser — daran erinnert dieser Streifen. */
-.save-note {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  max-width: var(--maxw); margin: 0 auto clamp(16px, 3vw, 26px);
-  padding: 10px 16px;
-  background: var(--color-sun-soft);
-  border: var(--line); border-radius: 999px;
-  font-size: 0.84rem; color: var(--color-ink);
-}
-.save-note i, .save-note svg { width: 17px; height: 17px; flex: none; }
-.save-note span { flex: 1 1 auto; min-width: 12ch; }
-.save-note-btn {
-  flex: none; font: inherit; font-weight: 700; font-size: 0.8rem;
-  padding: 5px 14px; border-radius: 999px;
-  border: var(--line); background: var(--color-paper);
-  color: var(--color-ink); cursor: pointer;
-}
-.save-note-btn:hover { background: var(--color-sun); }
-/* Auf schmalen Schirmen bricht der Text um — dann ist eine Pillenform unschön. */
-@media (max-width: 560px) {
-  .save-note { border-radius: var(--radius-sm); padding: 12px 14px; }
-}
 
 /* ============ DIALOGE (anlegen / bearbeiten / nachfragen) ============ */
 dialog.dlg {
   /* Der CSS-Reset weiter oben setzt margin:0 auf ALLES und nimmt dem Dialog
      damit seine eingebaute Zentrierung — hier wieder herstellen. */
   margin: auto;
-  padding: 0; border: var(--line); border-radius: var(--radius);
+  padding: 0; border: var(--line);
   background: var(--color-paper); color: var(--color-ink);
   width: min(460px, calc(100vw - 28px));
   max-height: calc(100dvh - 40px);
   box-shadow: var(--pop);
 }
-dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
+dialog.dlg::backdrop { background: rgba(0, 0, 0, 0.55); }
 .dlg-form { display: flex; flex-direction: column; gap: 18px; padding: clamp(18px, 4vw, 24px); }
 .dlg-title { font-size: 1.28rem; font-weight: 700; letter-spacing: 0.01em; }
 .dlg-body { display: flex; flex-direction: column; gap: 15px; }
 .dlg-text { font-size: 0.92rem; line-height: 1.6; color: var(--color-ink-soft); }
 .dlg-list { display: flex; flex-direction: column; gap: 8px; padding-left: 18px; font-size: 0.88rem; line-height: 1.55; color: var(--color-ink-soft); }
 .dlg-list li { list-style: disc; }
-.dlg-body code { font-family: var(--mono); font-size: 0.85em; background: var(--color-cream-dim); padding: 1px 5px; border-radius: 5px; }
+.dlg-body code { font-family: var(--mono); font-size: 0.85em; background: var(--color-cream-dim); padding: 1px 5px; }
 .dlg-foot { display: flex; gap: 9px; justify-content: flex-end; flex-wrap: wrap; }
 .dlg-btn {
   font: inherit; font-weight: 700; font-size: 0.88rem;
-  padding: 10px 18px; border-radius: 999px;
+  padding: 10px 18px;
   border: var(--line); background: var(--color-paper);
   color: var(--color-ink); cursor: pointer;
   transition: transform .18s var(--ease), box-shadow .18s var(--ease), background .18s;
 }
 .dlg-btn:hover { background: var(--color-sun-soft); }
-.dlg-btn.primary { background: var(--color-sun); }
+.dlg-btn.primary { background: var(--color-sun); color: var(--color-sun-ink); }
 .dlg-btn.primary:hover { transform: translate(-2px, -2px); box-shadow: var(--pop); }
 .dlg-btn.danger { color: var(--color-err); margin-right: auto; }
 .dlg-btn.danger:hover { background: var(--color-wiwo); color: var(--color-ink); }
@@ -382,7 +370,7 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 }
 .fld-in {
   font: inherit; font-size: 0.95rem;
-  padding: 10px 14px; border-radius: var(--radius-sm);
+  padding: 10px 14px;
   border: var(--line); background: var(--color-cream);
   color: var(--color-ink); width: 100%;
 }
@@ -394,15 +382,14 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
   grid-template-columns: auto 1fr;
   gap: 10px 14px;
   padding: 12px;
-  border: 2px dashed rgba(26, 26, 26, 0.3);
-  border-radius: var(--radius-sm);
+  border: 2px dashed rgba(237, 230, 217, 0.3);
   background: var(--color-cream);
 }
 .icon-pick:focus-visible, .icon-pick.over { border-color: var(--color-ink); border-style: solid; background: var(--color-sun-soft); outline: none; }
 .icon-prev {
   grid-row: span 2;
   position: relative;
-  width: 62px; height: 62px; border-radius: 12px; overflow: hidden;
+  width: 62px; height: 62px; overflow: hidden;
   display: grid; place-items: center;
   background: var(--color-paper); border: var(--line);
 }
@@ -411,7 +398,7 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 .icon-hint { font-size: 0.78rem; line-height: 1.5; color: var(--color-ink-soft); align-self: center; }
 .icon-hint kbd {
   font-family: var(--mono); font-size: 0.72rem;
-  padding: 1px 5px; border: var(--line); border-radius: 5px; background: var(--color-paper);
+  padding: 1px 5px; border: var(--line); background: var(--color-paper);
 }
 .icon-note { display: block; margin-top: 3px; font-size: 0.72rem; color: var(--color-ink-mute); }
 .icon-acts { grid-column: 2; display: flex; gap: 7px; flex-wrap: wrap; }
@@ -421,13 +408,14 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 .size-btn {
   display: inline-flex; align-items: center; gap: 8px;
   font: inherit; font-size: 0.82rem; font-weight: 600;
-  padding: 8px 14px; border-radius: var(--radius-sm);
+  padding: 8px 14px;
   border: var(--line); background: var(--color-paper);
   color: var(--color-ink); cursor: pointer;
 }
 .size-btn:hover { background: var(--color-sun-soft); }
-.size-btn.active { background: var(--color-sun); }
-.size-demo { display: block; background: var(--color-ink); border-radius: 2px; flex: none; }
+.size-btn.active { background: var(--color-sun); color: var(--color-sun-ink); }
+.size-btn.active .size-demo { background: var(--color-sun-ink); }
+.size-demo { display: block; background: var(--color-ink); flex: none; }
 .size-demo-s { width: 11px; height: 11px; }
 .size-demo-w { width: 22px; height: 11px; }
 .size-demo-l { width: 20px; height: 20px; }
@@ -437,7 +425,7 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
   position: fixed; z-index: 210;
   min-width: 216px; padding: 6px;
   background: var(--color-paper);
-  border: var(--line); border-radius: var(--radius-sm);
+  border: var(--line);
   box-shadow: var(--pop);
   animation: tm-in 0.16s var(--ease);
 }
@@ -451,7 +439,7 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 .tm-item {
   display: flex; align-items: center; gap: 10px; width: 100%;
   font: inherit; font-size: 0.88rem; text-align: left;
-  padding: 9px 10px; border-radius: 10px;
+  padding: 9px 10px;
   border: 0; background: none; color: var(--color-ink); cursor: pointer;
 }
 .tm-item:hover { background: var(--color-sun-soft); }
@@ -461,7 +449,8 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 .tm-sep { height: 1px; margin: 5px 8px; background: var(--color-ink); opacity: 0.18; }
 .tm-sizes { display: flex; gap: 5px; padding: 0 4px; }
 .tm-size { flex: 1; justify-content: center; font-size: 0.76rem; padding: 8px 4px; gap: 6px; }
-.tm-size.active { background: var(--color-sun); }
+.tm-size.active { background: var(--color-sun); color: var(--color-sun-ink); }
+.tm-size.active .size-demo { background: var(--color-sun-ink); }
 
 /* ============ SUCHLEISTE (fest unten) ============ */
 .bottombar {
@@ -479,7 +468,6 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
   display: flex; align-items: center; gap: 10px;
   height: 52px;
   padding: 0 8px 0 16px;
-  border-radius: 999px;
   background: var(--color-paper);
   border: var(--line);
   transition: box-shadow .25s var(--ease), transform .25s var(--ease);
@@ -497,9 +485,9 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 #searchInput::-webkit-search-decoration { -webkit-appearance: none; display: none; }
 .search-clear {
   flex: none; display: none; place-items: center;
-  width: 36px; height: 36px; border-radius: 50%;
+  width: 36px; height: 36px;
   border: var(--line); background: var(--color-sun);
-  color: var(--color-ink); cursor: pointer;
+  color: var(--color-sun-ink); cursor: pointer;
   transition: transform .2s var(--ease);
 }
 .search-clear:hover { transform: rotate(90deg); }
@@ -516,7 +504,6 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
   max-height: calc(100dvh - 16px);
   background: var(--color-cream);
   border: var(--line);
-  border-radius: var(--radius-sm);
   box-shadow: var(--pop);
   overflow: hidden;
 }
@@ -539,13 +526,13 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 }
 .tw-close, .tw-action {
   flex: none; display: grid; place-items: center;
-  width: 30px; height: 30px; border-radius: 50%;
+  width: 30px; height: 30px;
   border: var(--line); background: var(--color-sun);
-  color: var(--color-ink); cursor: pointer;
+  color: var(--color-sun-ink); cursor: pointer;
   transition: transform .2s var(--ease), background .2s var(--ease), color .2s var(--ease);
 }
 .tw-close:hover { transform: rotate(90deg); }
-.tw-action { background: var(--color-paper); }
+.tw-action { background: var(--color-paper); color: var(--color-ink); }
 .tw-action:hover { background: var(--color-sun-soft); }
 .tw-action.danger:hover { background: var(--color-wiwo); }
 .tw-action:disabled { opacity: 0.45; cursor: default; }
@@ -557,7 +544,7 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 .calc-display {
   flex: none; min-height: 64px;
   display: flex; align-items: flex-end; justify-content: flex-end;
-  padding: 8px 14px; border-radius: var(--radius-sm);
+  padding: 8px 14px;
   background: var(--color-paper); border: var(--line);
   font-variant-numeric: tabular-nums;
   font-size: clamp(1.5rem, 8vw, 2.1rem); font-weight: 700;
@@ -567,7 +554,7 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 .calc-keys { flex: 1 1 auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .calc-key {
   display: grid; place-items: center;
-  border-radius: 999px; border: var(--line);
+  border: var(--line);
   background: var(--color-paper); color: var(--color-ink);
   font: inherit; font-size: 1.15rem; font-weight: 600; cursor: pointer;
   transition: background .15s var(--ease), transform .1s var(--ease);
@@ -575,17 +562,17 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 .calc-key:hover { background: var(--color-sun-soft); }
 .calc-key:active { transform: scale(0.96); }
 .calc-key.op { background: var(--color-cream-dim); }
-.calc-key.op.active { background: var(--color-sun); }
+.calc-key.op.active { background: var(--color-sun); color: var(--color-sun-ink); }
 .calc-key.fn { background: var(--color-cream-dim); font-size: 0.95rem; }
-.calc-key.eq { background: var(--color-sun); font-weight: 700; }
+.calc-key.eq { background: var(--color-sun); color: var(--color-sun-ink); font-weight: 700; }
 .calc-key.wide { grid-column: span 2; }
 
 /* ============ ARBEITSZEIT (Dienstzeiten-Rechner) ============ */
 .wt {
-  --wt-green: #4C7A54;  --wt-green-bg: var(--color-flexi);
-  --wt-amber: #9C7A1E;  --wt-amber-bg: var(--color-sun-soft);
-  --wt-blue: #1A1A1A;   --wt-blue-bg: var(--color-cream-dim);
-  --wt-red: #B3502E;    --wt-red-bg: #F6D9CE;
+  --wt-green: #8FBF95;  --wt-green-bg: var(--color-flexi);
+  --wt-amber: #D9B14A;  --wt-amber-bg: var(--color-sun-soft);
+  --wt-blue: var(--color-ink); --wt-blue-bg: var(--color-cream-dim);
+  --wt-red: #E58B63;    --wt-red-bg: #4A2B1F;
   --wt-mono: var(--mono);
   padding: 14px; display: flex; flex-direction: column; gap: 12px;
   color: var(--color-ink);
@@ -594,10 +581,10 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 .wt-head h2 { font-size: 1.2rem; font-weight: 700; letter-spacing: 0.02em; }
 .wt-date { font-family: var(--wt-mono); font-size: 0.74rem; color: var(--color-ink-mute); }
 
-/* Bento-Cards: Paper-Fläche mit Konturlinie */
+/* Bento-Cards: dunkle Fläche mit Konturlinie */
 .wt-card {
   background: var(--color-paper); border: var(--line);
-  border-radius: var(--radius-sm); padding: 12px 14px;
+  padding: 12px 14px;
 }
 .wt-card-title {
   font-size: 0.72rem; font-weight: 700; color: var(--color-ink);
@@ -608,12 +595,12 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 .wt-goals { display: flex; flex-direction: column; gap: 10px; }
 .wt-goal { display: flex; align-items: center; gap: 10px; }
 .wt-goal label { font-size: 0.72rem; color: var(--color-ink-mute); min-width: 58px; }
-.wt-goal input[type=range] { flex: 1; accent-color: var(--color-ink); height: 4px; }
+.wt-goal input[type=range] { flex: 1; accent-color: var(--color-sun); height: 4px; }
 .wt-val { font-family: var(--wt-mono); font-size: 0.8rem; font-weight: 600; min-width: 38px; text-align: right; color: var(--color-ink); }
 
 /* Stat-Cards: große fette Metrik, Label darunter */
 .wt-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.wt-stat { background: var(--color-paper); border: var(--line); border-radius: var(--radius-sm); padding: 10px 12px; }
+.wt-stat { background: var(--color-paper); border: var(--line); padding: 10px 12px; }
 .wt-stat-label { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; color: var(--color-ink-mute); margin-bottom: 4px; }
 .wt-stat-value { font-family: var(--wt-mono); font-size: 1.5rem; font-weight: 700; line-height: 1; color: var(--color-ink); }
 .wt-stat-value.blue { color: var(--color-ink); }
@@ -621,13 +608,13 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 .wt-stat-value.amber { color: var(--wt-amber); }
 .wt-stat-value.muted { color: var(--color-ink-mute); }
 
-/* Fortschritt: außen konturierte Kapsel, innen Füll-Kapsel in Kategoriefarbe */
+/* Fortschritt: außen konturierter Balken, innen Füllung in Kategoriefarbe */
 .wt-progress-meta { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--color-ink-mute); margin-bottom: 6px; }
 .wt-progress-meta b { font-family: var(--wt-mono); font-weight: 700; color: var(--color-ink); }
-.wt-bar-bg { height: 16px; background: var(--color-paper); border: var(--line); border-radius: 999px; overflow: hidden; padding: 2px; }
-.wt-bar-fill { height: 100%; border-radius: 999px; background: var(--color-sun); transition: width 0.5s var(--ease), background 0.3s; }
+.wt-bar-bg { height: 16px; background: var(--color-paper); border: var(--line); overflow: hidden; padding: 2px; }
+.wt-bar-fill { height: 100%; background: var(--color-sun); transition: width 0.5s var(--ease), background 0.3s; }
 
-.wt-endtimes { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--color-paper); border: var(--line); border-radius: var(--radius-sm); overflow: hidden; }
+.wt-endtimes { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--color-paper); border: var(--line); overflow: hidden; }
 .wt-et { padding: 10px 12px; border-right: var(--line); }
 .wt-et:last-child { border-right: none; }
 .wt-et-label { font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; color: var(--color-ink-mute); margin-bottom: 4px; }
@@ -636,10 +623,10 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 .wt-et-value.amber { color: var(--wt-amber); }
 .wt-et-value.muted { color: var(--color-ink-mute); }
 
-/* Status als outlined Kapseln mit uppercase-Text (Badge-Pills) */
+/* Status als konturierte, eckige Schilder mit uppercase-Text */
 .wt-pill {
   font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-  padding: 3px 10px; border-radius: 999px; border: var(--line); color: var(--color-ink);
+  padding: 3px 10px; border: var(--line); color: var(--color-ink);
 }
 .wt-pill.active { background: var(--wt-green-bg); }
 .wt-pill.pause { background: var(--color-sun-soft); }
@@ -649,33 +636,33 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 .wt-input-row label { font-size: 0.78rem; color: var(--color-ink-mute); }
 .wt input[type=time] {
   font-family: var(--wt-mono); font-size: 0.85rem; font-weight: 600;
-  padding: 7px 10px; border: var(--line); border-radius: 999px;
+  padding: 7px 10px; border: var(--line);
   background: var(--color-paper); color: var(--color-ink); width: 120px;
   transition: box-shadow 0.15s var(--ease);
-  color-scheme: light;
+  color-scheme: dark;
 }
 .wt input[type=time]:focus { outline: none; box-shadow: 0 0 0 3px var(--color-sun-soft); }
 .wt-err { font-size: 0.72rem; color: var(--wt-red); margin-top: 6px; min-height: 14px; }
 
 .wt-btn {
   font: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer;
-  border-radius: 999px; padding: 7px 14px;
+  padding: 7px 14px;
   border: var(--line); background: var(--color-paper); color: var(--color-ink);
   transition: background 0.15s var(--ease), transform 0.15s var(--ease);
 }
 .wt-btn:hover { background: var(--color-sun-soft); }
-.wt-btn.primary { background: var(--color-sun); }
-.wt-btn.primary:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--color-ink); }
+.wt-btn.primary { background: var(--color-sun); color: var(--color-sun-ink); }
+.wt-btn.primary:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.55); }
 .wt-btn.danger { background: none; border-color: transparent; color: var(--wt-red); padding: 7px 10px; font-size: 0.74rem; }
 .wt-btn.danger:hover { background: var(--wt-red-bg); }
 
 .wt-pauses { margin-top: 10px; }
-.wt-pause-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(26,26,26,0.18); font-size: 0.78rem; }
+.wt-pause-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(237, 230, 217, 0.18); font-size: 0.78rem; }
 .wt-pause-item:last-child { border-bottom: none; }
 .wt-pause-times { font-family: var(--wt-mono); color: var(--color-ink); }
 .wt-pause-dur { color: var(--color-ink-mute); font-size: 0.72rem; margin-left: 8px; }
 .wt-pause-open { color: var(--wt-amber); font-style: italic; }
-.wt-del { background: none; border: none; color: var(--color-ink-mute); cursor: pointer; padding: 3px 7px; border-radius: 6px; font-size: 1rem; line-height: 1; }
+.wt-del { background: none; border: none; color: var(--color-ink-mute); cursor: pointer; padding: 3px 7px; font-size: 1rem; line-height: 1; }
 .wt-del:hover { background: var(--wt-red-bg); color: var(--wt-red); }
 
 .wt-footer { display: flex; justify-content: flex-end; }
@@ -692,7 +679,7 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
   display: flex; align-items: center; justify-content: center; gap: 10px;
   padding: 22px 14px; cursor: pointer; text-align: center;
   background: var(--color-paper); border: 1px dashed var(--color-ink);
-  border-radius: var(--radius-sm); font-size: 0.88rem; font-weight: 600;
+  font-size: 0.88rem; font-weight: 600;
   transition: background 0.15s;
 }
 .pdx-drop:hover, .pdx-drop.dragover { background: var(--color-sun-soft); }
@@ -702,13 +689,13 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 
 .pdx-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  background: var(--color-paper); border: var(--line); border-radius: 999px;
+  background: var(--color-paper); border: var(--line);
   padding: 10px 16px; font-size: 0.86rem; font-weight: 700; cursor: pointer;
   color: var(--color-ink); text-decoration: none; transition: transform 0.12s, box-shadow 0.12s;
 }
 .pdx-btn:hover { background: var(--color-sun-soft); }
-.pdx-btn.primary { background: var(--color-sun); }
-.pdx-btn.primary:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--color-ink); }
+.pdx-btn.primary { background: var(--color-sun); color: var(--color-sun-ink); }
+.pdx-btn.primary:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.55); }
 .pdx-btn:disabled { opacity: 0.45; cursor: default; transform: none; box-shadow: none; }
 .pdx-btn.success { background: var(--wt-green-bg, var(--color-flexi)); }
 .pdx-btn i { width: 18px; height: 18px; }
@@ -717,46 +704,11 @@ dialog.dlg::backdrop { background: rgba(26, 26, 26, 0.42); }
 
 .pdx-progress-meta { display: flex; justify-content: space-between; font-size: 0.74rem; color: var(--color-ink-mute); margin-bottom: 6px; }
 .pdx-progress-meta b { font-family: var(--mono); color: var(--color-ink); }
-.pdx-bar-bg { height: 14px; background: var(--color-paper); border: var(--line); border-radius: 999px; overflow: hidden; padding: 2px; }
-.pdx-bar-fill { height: 100%; border-radius: 999px; background: var(--color-sun); transition: width 0.3s var(--ease); }
+.pdx-bar-bg { height: 14px; background: var(--color-paper); border: var(--line); overflow: hidden; padding: 2px; }
+.pdx-bar-fill { height: 100%; background: var(--color-sun); transition: width 0.3s var(--ease); }
 
 .pdx-err { font-size: 0.78rem; color: var(--color-err); min-height: 0; }
 .pdx-err:empty { display: none; }
-
-/* ============ FAVORITEN & ABSCHNITTE ============ */
-.home-fav-title {
-  display: block; max-width: 760px; margin: 0 auto 12px; padding: 0 4px;
-  text-align: center; font-size: 0.78rem;
-}
-#homeFav .home-grid { margin-bottom: clamp(24px, 4vw, 40px); }
-@media (min-width: 860px) { .home-fav-title { max-width: 880px; } }
-
-.section-title {
-  display: block; max-width: 760px; margin: clamp(18px, 3vw, 28px) auto 12px; padding: 0 4px;
-  text-align: center; font-size: 0.78rem;
-}
-#homeGrid > .section-title:first-child { margin-top: 0; }
-@media (min-width: 860px) { .section-title { max-width: 880px; } }
-
-/* ============ DATEI-ABLAGE (Drag & Drop Overlay) ============ */
-.drop-veil {
-  position: fixed; inset: 0; z-index: 60; display: none;
-  place-items: center; pointer-events: none; padding: 24px;
-  background: rgba(253, 251, 247, 0.82);
-}
-body.dropping .drop-veil { display: grid; }
-.drop-card {
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
-  width: min(460px, 90%); padding: 40px 28px;
-  border: 2px dashed var(--color-ink); border-radius: var(--radius);
-  background: var(--color-paper); text-align: center;
-}
-.drop-ico { width: 44px; height: 44px; color: var(--color-ink); }
-.drop-title { font-size: 1.15rem; font-weight: 700; color: var(--color-ink); }
-.drop-sub {
-  font-size: 0.72rem; color: var(--color-ink-mute);
-  text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600;
-}
 
 /* ============ WERKZEUG-LADEPLATZHALTER ============ */
 /* Kurzer "Lade …"-Text, während ein Werkzeug (z. B. der PDF Duplex-Fixer)
@@ -776,7 +728,6 @@ body.dropping .drop-veil { display: grid; }
 #cmdLayer > * { pointer-events: auto; }
 
 .cmd-palette, .cmd-panel {
-  border-radius: var(--radius-sm);
   background: var(--color-paper);
   border: var(--line);
   box-shadow: var(--pop);
@@ -785,7 +736,7 @@ body.dropping .drop-veil { display: grid; }
 .cmd-palette { padding: 6px; display: flex; flex-direction: column; gap: 2px; }
 .cmd-item {
   display: flex; align-items: center; gap: 10px;
-  width: 100%; padding: 9px 12px; border: 1px solid transparent; border-radius: 12px;
+  width: 100%; padding: 9px 12px; border: 1px solid transparent;
   background: none; color: var(--color-ink-soft); cursor: pointer; text-align: left;
   font: inherit; font-size: 0.9rem;
 }

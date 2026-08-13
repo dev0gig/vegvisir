@@ -9,19 +9,21 @@
     --radius-sm: 0.25rem;
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
-    --color-cream: #EFE6D3;
-    --color-cream-dim: #E4D8BF;
-    --color-paper: #FBF6EC;
-    --color-ink: #1A1A1A;
-    --color-ink-soft: #4B4a44;
-    --color-ink-mute: #8B857A;
+    --color-cream: #1B1815;
+    --color-cream-dim: #2B251E;
+    --color-paper: #242019;
+    --color-ink: #EDE6D9;
+    --color-ink-soft: #C7BDAC;
+    --color-ink-mute: #8F8678;
+    --color-line: #3E362B;
     --color-sun: #F5C84C;
-    --color-sun-soft: #FBEDC5;
-    --color-wiwo: #F3A694;
-    --color-spittelau: #C3B1E1;
-    --color-flexi: #DDEBD5;
-    --color-ok: #4C7A54;
-    --color-err: #B3502E;
+    --color-sun-ink: #1F1A10;
+    --color-sun-soft: #3B321D;
+    --color-wiwo: #6B3A2C;
+    --color-spittelau: #453B5C;
+    --color-flexi: #2E3A2C;
+    --color-ok: #8FBF95;
+    --color-err: #E58B63;
   }
 }
 @layer base {
@@ -173,6 +175,21 @@
   }
 }
 @layer utilities {
+  .invisible {
+    visibility: hidden;
+  }
+  .visible {
+    visibility: visible;
+  }
+  .absolute {
+    position: absolute;
+  }
+  .relative {
+    position: relative;
+  }
+  .static {
+    position: static;
+  }
   .container {
     width: 100%;
     @media (width >= 40rem) {
@@ -197,14 +214,59 @@
   .contents {
     display: contents;
   }
+  .flex {
+    display: flex;
+  }
   .grid {
     display: grid;
   }
   .hidden {
     display: none;
   }
+  .inline {
+    display: inline;
+  }
+  .table {
+    display: table;
+  }
+  .table-cell {
+    display: table-cell;
+  }
   .transform {
     transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
+  }
+  .truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .border {
+    border-style: var(--tw-border-style);
+    border-width: 1px;
+  }
+  .italic {
+    font-style: italic;
+  }
+  .line-through {
+    text-decoration-line: line-through;
+  }
+  .overline {
+    text-decoration-line: overline;
+  }
+  .underline {
+    text-decoration-line: underline;
+  }
+  .shadow {
+    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .ring {
+    --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .outline {
+    outline-style: var(--tw-outline-style);
+    outline-width: 1px;
   }
   .blur {
     --tw-blur: blur(8px);
@@ -243,10 +305,10 @@
   src: url("./assets/fonts/manrope-latin-700.woff2") format("woff2");
 }
 :root {
-  --radius: 24px;
-  --radius-sm: 16px;
-  --line: 1px solid var(--color-ink);
-  --pop: 3px 3px 0 var(--color-ink);
+  --radius: 0px;
+  --radius-sm: 0px;
+  --line: 1px solid var(--color-line);
+  --pop: 3px 3px 0 rgba(0, 0, 0, 0.55);
   --maxw: 1240px;
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -268,6 +330,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  color-scheme: dark;
 }
 * {
   scrollbar-width: none;
@@ -286,6 +349,30 @@ body {
 :is(button, a, input):focus-visible {
   outline: 2px solid var(--color-ink);
   outline-offset: 2px;
+}
+.section-title {
+  display: block;
+  max-width: var(--maxw);
+  margin: 0 auto 12px;
+  padding: 0 4px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-ink-mute);
+}
+.tools-grid {
+  margin-bottom: 0;
+}
+#homeGrid .tools-grid {
+  margin-top: 0;
+}
+#homeGrid > .tile-grid, #homeGrid > .empty-home {
+  margin-bottom: clamp(28px, 5vw, 48px);
+}
+#homeGrid > :last-child {
+  margin-bottom: 0;
 }
 :root {
   --unit: clamp(84px, 21vw, 120px);
@@ -313,7 +400,6 @@ body {
   color: #fff;
   background: var(--tile, #4B4A44);
   border: var(--line);
-  border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
   user-select: none;
@@ -402,7 +488,6 @@ body {
 .mini {
   position: relative;
   overflow: hidden;
-  border-radius: 22%;
   background: rgba(255, 255, 255, 0.9);
 }
 .mini .mini-mono {
@@ -412,7 +497,7 @@ body {
   place-items: center;
   font-weight: 700;
   font-size: calc(var(--unit) * 0.11);
-  color: var(--color-ink);
+  color: #1A1A1A;
 }
 .mini img {
   position: absolute;
@@ -434,7 +519,6 @@ body {
   padding: 0 5px;
   display: grid;
   place-items: center;
-  border-radius: 999px;
   background: rgba(0, 0, 0, 0.4);
   font-size: 0.62rem;
   font-weight: 700;
@@ -508,7 +592,7 @@ body.tile-dragging {
 }
 .tile-placeholder {
   background: transparent;
-  border: 2px dashed rgba(26, 26, 26, 0.32);
+  border: 2px dashed rgba(237, 230, 217, 0.35);
   pointer-events: none;
 }
 .tile-placeholder::after {
@@ -521,7 +605,7 @@ body.tile-dragging {
   z-index: 200;
   pointer-events: none;
   scale: 1.06;
-  box-shadow: 0 14px 30px rgba(26, 26, 26, 0.4);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.55);
   opacity: 0.95;
 }
 .tile.merge-hot::before {
@@ -529,7 +613,6 @@ body.tile-dragging {
   position: absolute;
   inset: 0;
   z-index: 1;
-  border-radius: inherit;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.12));
   transform: scale(0);
   animation: merge-fill 700ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -556,7 +639,7 @@ body.tile-dragging {
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  padding: clamp(40px, 10vw, 90px) 16px;
+  padding: clamp(28px, 6vw, 60px) 16px;
   text-align: center;
   color: var(--color-ink-soft);
 }
@@ -583,11 +666,10 @@ body.tile-dragging {
   font: inherit;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--color-ink);
+  color: var(--color-sun-ink);
   background: var(--color-sun);
   border: var(--line);
   padding: 12px 22px;
-  border-radius: 999px;
   cursor: pointer;
   transition: transform .2s var(--ease), box-shadow .2s var(--ease);
 }
@@ -595,62 +677,14 @@ body.tile-dragging {
   transform: translate(-2px, -2px);
   box-shadow: var(--pop);
 }
-.btn-import.ghost {
-  background: var(--color-paper);
-}
 .btn-import i {
   width: 18px;
   height: 18px;
-}
-.save-note {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  max-width: var(--maxw);
-  margin: 0 auto clamp(16px, 3vw, 26px);
-  padding: 10px 16px;
-  background: var(--color-sun-soft);
-  border: var(--line);
-  border-radius: 999px;
-  font-size: 0.84rem;
-  color: var(--color-ink);
-}
-.save-note i, .save-note svg {
-  width: 17px;
-  height: 17px;
-  flex: none;
-}
-.save-note span {
-  flex: 1 1 auto;
-  min-width: 12ch;
-}
-.save-note-btn {
-  flex: none;
-  font: inherit;
-  font-weight: 700;
-  font-size: 0.8rem;
-  padding: 5px 14px;
-  border-radius: 999px;
-  border: var(--line);
-  background: var(--color-paper);
-  color: var(--color-ink);
-  cursor: pointer;
-}
-.save-note-btn:hover {
-  background: var(--color-sun);
-}
-@media (max-width: 560px) {
-  .save-note {
-    border-radius: var(--radius-sm);
-    padding: 12px 14px;
-  }
 }
 dialog.dlg {
   margin: auto;
   padding: 0;
   border: var(--line);
-  border-radius: var(--radius);
   background: var(--color-paper);
   color: var(--color-ink);
   width: min(460px, calc(100vw - 28px));
@@ -658,7 +692,7 @@ dialog.dlg {
   box-shadow: var(--pop);
 }
 dialog.dlg::backdrop {
-  background: rgba(26, 26, 26, 0.42);
+  background: rgba(0, 0, 0, 0.55);
 }
 .dlg-form {
   display: flex;
@@ -698,7 +732,6 @@ dialog.dlg::backdrop {
   font-size: 0.85em;
   background: var(--color-cream-dim);
   padding: 1px 5px;
-  border-radius: 5px;
 }
 .dlg-foot {
   display: flex;
@@ -711,7 +744,6 @@ dialog.dlg::backdrop {
   font-weight: 700;
   font-size: 0.88rem;
   padding: 10px 18px;
-  border-radius: 999px;
   border: var(--line);
   background: var(--color-paper);
   color: var(--color-ink);
@@ -723,6 +755,7 @@ dialog.dlg::backdrop {
 }
 .dlg-btn.primary {
   background: var(--color-sun);
+  color: var(--color-sun-ink);
 }
 .dlg-btn.primary:hover {
   transform: translate(-2px, -2px);
@@ -759,7 +792,6 @@ dialog.dlg::backdrop {
   font: inherit;
   font-size: 0.95rem;
   padding: 10px 14px;
-  border-radius: var(--radius-sm);
   border: var(--line);
   background: var(--color-cream);
   color: var(--color-ink);
@@ -774,8 +806,7 @@ dialog.dlg::backdrop {
   grid-template-columns: auto 1fr;
   gap: 10px 14px;
   padding: 12px;
-  border: 2px dashed rgba(26, 26, 26, 0.3);
-  border-radius: var(--radius-sm);
+  border: 2px dashed rgba(237, 230, 217, 0.3);
   background: var(--color-cream);
 }
 .icon-pick:focus-visible, .icon-pick.over {
@@ -789,7 +820,6 @@ dialog.dlg::backdrop {
   position: relative;
   width: 62px;
   height: 62px;
-  border-radius: 12px;
   overflow: hidden;
   display: grid;
   place-items: center;
@@ -817,7 +847,6 @@ dialog.dlg::backdrop {
   font-size: 0.72rem;
   padding: 1px 5px;
   border: var(--line);
-  border-radius: 5px;
   background: var(--color-paper);
 }
 .icon-note {
@@ -845,7 +874,6 @@ dialog.dlg::backdrop {
   font-size: 0.82rem;
   font-weight: 600;
   padding: 8px 14px;
-  border-radius: var(--radius-sm);
   border: var(--line);
   background: var(--color-paper);
   color: var(--color-ink);
@@ -856,11 +884,14 @@ dialog.dlg::backdrop {
 }
 .size-btn.active {
   background: var(--color-sun);
+  color: var(--color-sun-ink);
+}
+.size-btn.active .size-demo {
+  background: var(--color-sun-ink);
 }
 .size-demo {
   display: block;
   background: var(--color-ink);
-  border-radius: 2px;
   flex: none;
 }
 .size-demo-s {
@@ -882,7 +913,6 @@ dialog.dlg::backdrop {
   padding: 6px;
   background: var(--color-paper);
   border: var(--line);
-  border-radius: var(--radius-sm);
   box-shadow: var(--pop);
   animation: tm-in 0.16s var(--ease);
 }
@@ -915,7 +945,6 @@ dialog.dlg::backdrop {
   font-size: 0.88rem;
   text-align: left;
   padding: 9px 10px;
-  border-radius: 10px;
   border: 0;
   background: none;
   color: var(--color-ink);
@@ -956,6 +985,10 @@ dialog.dlg::backdrop {
 }
 .tm-size.active {
   background: var(--color-sun);
+  color: var(--color-sun-ink);
+}
+.tm-size.active .size-demo {
+  background: var(--color-sun-ink);
 }
 .bottombar {
   position: fixed;
@@ -976,7 +1009,6 @@ dialog.dlg::backdrop {
   gap: 10px;
   height: 52px;
   padding: 0 8px 0 16px;
-  border-radius: 999px;
   background: var(--color-paper);
   border: var(--line);
   transition: box-shadow .25s var(--ease), transform .25s var(--ease);
@@ -1018,10 +1050,9 @@ dialog.dlg::backdrop {
   place-items: center;
   width: 36px;
   height: 36px;
-  border-radius: 50%;
   border: var(--line);
   background: var(--color-sun);
-  color: var(--color-ink);
+  color: var(--color-sun-ink);
   cursor: pointer;
   transition: transform .2s var(--ease);
 }
@@ -1046,7 +1077,6 @@ dialog.dlg::backdrop {
   max-height: calc(100dvh - 16px);
   background: var(--color-cream);
   border: var(--line);
-  border-radius: var(--radius-sm);
   box-shadow: var(--pop);
   overflow: hidden;
 }
@@ -1094,10 +1124,9 @@ dialog.dlg::backdrop {
   place-items: center;
   width: 30px;
   height: 30px;
-  border-radius: 50%;
   border: var(--line);
   background: var(--color-sun);
-  color: var(--color-ink);
+  color: var(--color-sun-ink);
   cursor: pointer;
   transition: transform .2s var(--ease), background .2s var(--ease), color .2s var(--ease);
 }
@@ -1106,6 +1135,7 @@ dialog.dlg::backdrop {
 }
 .tw-action {
   background: var(--color-paper);
+  color: var(--color-ink);
 }
 .tw-action:hover {
   background: var(--color-sun-soft);
@@ -1141,7 +1171,6 @@ dialog.dlg::backdrop {
   align-items: flex-end;
   justify-content: flex-end;
   padding: 8px 14px;
-  border-radius: var(--radius-sm);
   background: var(--color-paper);
   border: var(--line);
   font-variant-numeric: tabular-nums;
@@ -1161,7 +1190,6 @@ dialog.dlg::backdrop {
 .calc-key {
   display: grid;
   place-items: center;
-  border-radius: 999px;
   border: var(--line);
   background: var(--color-paper);
   color: var(--color-ink);
@@ -1182,6 +1210,7 @@ dialog.dlg::backdrop {
 }
 .calc-key.op.active {
   background: var(--color-sun);
+  color: var(--color-sun-ink);
 }
 .calc-key.fn {
   background: var(--color-cream-dim);
@@ -1189,20 +1218,21 @@ dialog.dlg::backdrop {
 }
 .calc-key.eq {
   background: var(--color-sun);
+  color: var(--color-sun-ink);
   font-weight: 700;
 }
 .calc-key.wide {
   grid-column: span 2;
 }
 .wt {
-  --wt-green: #4C7A54;
+  --wt-green: #8FBF95;
   --wt-green-bg: var(--color-flexi);
-  --wt-amber: #9C7A1E;
+  --wt-amber: #D9B14A;
   --wt-amber-bg: var(--color-sun-soft);
-  --wt-blue: #1A1A1A;
+  --wt-blue: var(--color-ink);
   --wt-blue-bg: var(--color-cream-dim);
-  --wt-red: #B3502E;
-  --wt-red-bg: #F6D9CE;
+  --wt-red: #E58B63;
+  --wt-red-bg: #4A2B1F;
   --wt-mono: var(--mono);
   padding: 14px;
   display: flex;
@@ -1229,7 +1259,6 @@ dialog.dlg::backdrop {
 .wt-card {
   background: var(--color-paper);
   border: var(--line);
-  border-radius: var(--radius-sm);
   padding: 12px 14px;
 }
 .wt-card-title {
@@ -1260,7 +1289,7 @@ dialog.dlg::backdrop {
 }
 .wt-goal input[type=range] {
   flex: 1;
-  accent-color: var(--color-ink);
+  accent-color: var(--color-sun);
   height: 4px;
 }
 .wt-val {
@@ -1279,7 +1308,6 @@ dialog.dlg::backdrop {
 .wt-stat {
   background: var(--color-paper);
   border: var(--line);
-  border-radius: var(--radius-sm);
   padding: 10px 12px;
 }
 .wt-stat-label {
@@ -1325,13 +1353,11 @@ dialog.dlg::backdrop {
   height: 16px;
   background: var(--color-paper);
   border: var(--line);
-  border-radius: 999px;
   overflow: hidden;
   padding: 2px;
 }
 .wt-bar-fill {
   height: 100%;
-  border-radius: 999px;
   background: var(--color-sun);
   transition: width 0.5s var(--ease), background 0.3s;
 }
@@ -1340,7 +1366,6 @@ dialog.dlg::backdrop {
   grid-template-columns: repeat(3, 1fr);
   background: var(--color-paper);
   border: var(--line);
-  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 .wt-et {
@@ -1379,7 +1404,6 @@ dialog.dlg::backdrop {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 3px 10px;
-  border-radius: 999px;
   border: var(--line);
   color: var(--color-ink);
 }
@@ -1408,12 +1432,11 @@ dialog.dlg::backdrop {
   font-weight: 600;
   padding: 7px 10px;
   border: var(--line);
-  border-radius: 999px;
   background: var(--color-paper);
   color: var(--color-ink);
   width: 120px;
   transition: box-shadow 0.15s var(--ease);
-  color-scheme: light;
+  color-scheme: dark;
 }
 .wt input[type=time]:focus {
   outline: none;
@@ -1430,7 +1453,6 @@ dialog.dlg::backdrop {
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
-  border-radius: 999px;
   padding: 7px 14px;
   border: var(--line);
   background: var(--color-paper);
@@ -1442,10 +1464,11 @@ dialog.dlg::backdrop {
 }
 .wt-btn.primary {
   background: var(--color-sun);
+  color: var(--color-sun-ink);
 }
 .wt-btn.primary:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 2px 2px 0 var(--color-ink);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.55);
 }
 .wt-btn.danger {
   background: none;
@@ -1465,7 +1488,7 @@ dialog.dlg::backdrop {
   justify-content: space-between;
   align-items: center;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(26,26,26,0.18);
+  border-bottom: 1px solid rgba(237, 230, 217, 0.18);
   font-size: 0.78rem;
 }
 .wt-pause-item:last-child {
@@ -1490,7 +1513,6 @@ dialog.dlg::backdrop {
   color: var(--color-ink-mute);
   cursor: pointer;
   padding: 3px 7px;
-  border-radius: 6px;
   font-size: 1rem;
   line-height: 1;
 }
@@ -1529,7 +1551,6 @@ dialog.dlg::backdrop {
   text-align: center;
   background: var(--color-paper);
   border: 1px dashed var(--color-ink);
-  border-radius: var(--radius-sm);
   font-size: 0.88rem;
   font-weight: 600;
   transition: background 0.15s;
@@ -1555,7 +1576,6 @@ dialog.dlg::backdrop {
   gap: 8px;
   background: var(--color-paper);
   border: var(--line);
-  border-radius: 999px;
   padding: 10px 16px;
   font-size: 0.86rem;
   font-weight: 700;
@@ -1569,10 +1589,11 @@ dialog.dlg::backdrop {
 }
 .pdx-btn.primary {
   background: var(--color-sun);
+  color: var(--color-sun-ink);
 }
 .pdx-btn.primary:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 2px 2px 0 var(--color-ink);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.55);
 }
 .pdx-btn:disabled {
   opacity: 0.45;
@@ -1608,13 +1629,11 @@ dialog.dlg::backdrop {
   height: 14px;
   background: var(--color-paper);
   border: var(--line);
-  border-radius: 999px;
   overflow: hidden;
   padding: 2px;
 }
 .pdx-bar-fill {
   height: 100%;
-  border-radius: 999px;
   background: var(--color-sun);
   transition: width 0.3s var(--ease);
 }
@@ -1625,80 +1644,6 @@ dialog.dlg::backdrop {
 }
 .pdx-err:empty {
   display: none;
-}
-.home-fav-title {
-  display: block;
-  max-width: 760px;
-  margin: 0 auto 12px;
-  padding: 0 4px;
-  text-align: center;
-  font-size: 0.78rem;
-}
-#homeFav .home-grid {
-  margin-bottom: clamp(24px, 4vw, 40px);
-}
-@media (min-width: 860px) {
-  .home-fav-title {
-    max-width: 880px;
-  }
-}
-.section-title {
-  display: block;
-  max-width: 760px;
-  margin: clamp(18px, 3vw, 28px) auto 12px;
-  padding: 0 4px;
-  text-align: center;
-  font-size: 0.78rem;
-}
-#homeGrid > .section-title:first-child {
-  margin-top: 0;
-}
-@media (min-width: 860px) {
-  .section-title {
-    max-width: 880px;
-  }
-}
-.drop-veil {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: none;
-  place-items: center;
-  pointer-events: none;
-  padding: 24px;
-  background: rgba(253, 251, 247, 0.82);
-}
-body.dropping .drop-veil {
-  display: grid;
-}
-.drop-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  width: min(460px, 90%);
-  padding: 40px 28px;
-  border: 2px dashed var(--color-ink);
-  border-radius: var(--radius);
-  background: var(--color-paper);
-  text-align: center;
-}
-.drop-ico {
-  width: 44px;
-  height: 44px;
-  color: var(--color-ink);
-}
-.drop-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--color-ink);
-}
-.drop-sub {
-  font-size: 0.72rem;
-  color: var(--color-ink-mute);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-weight: 600;
 }
 .dp-loading {
   padding: 28px 14px;
@@ -1722,7 +1667,6 @@ body.dropping .drop-veil {
   pointer-events: auto;
 }
 .cmd-palette, .cmd-panel {
-  border-radius: var(--radius-sm);
   background: var(--color-paper);
   border: var(--line);
   box-shadow: var(--pop);
@@ -1741,7 +1685,6 @@ body.dropping .drop-veil {
   width: 100%;
   padding: 9px 12px;
   border: 1px solid transparent;
-  border-radius: 12px;
   background: none;
   color: var(--color-ink-soft);
   cursor: pointer;
@@ -1826,6 +1769,81 @@ body.dropping .drop-veil {
   syntax: "*";
   inherits: false;
 }
+@property --tw-border-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
+@property --tw-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-shadow-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-shadow-alpha {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+@property --tw-inset-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-inset-shadow-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-inset-shadow-alpha {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+@property --tw-ring-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-ring-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-inset-ring-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-inset-ring-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-ring-inset {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-ring-offset-width {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --tw-ring-offset-color {
+  syntax: "*";
+  inherits: false;
+  initial-value: #fff;
+}
+@property --tw-ring-offset-shadow {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0 0 #0000;
+}
+@property --tw-outline-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
 @property --tw-blur {
   syntax: "*";
   inherits: false;
@@ -1887,6 +1905,22 @@ body.dropping .drop-veil {
       --tw-rotate-z: initial;
       --tw-skew-x: initial;
       --tw-skew-y: initial;
+      --tw-border-style: solid;
+      --tw-shadow: 0 0 #0000;
+      --tw-shadow-color: initial;
+      --tw-shadow-alpha: 100%;
+      --tw-inset-shadow: 0 0 #0000;
+      --tw-inset-shadow-color: initial;
+      --tw-inset-shadow-alpha: 100%;
+      --tw-ring-color: initial;
+      --tw-ring-shadow: 0 0 #0000;
+      --tw-inset-ring-color: initial;
+      --tw-inset-ring-shadow: 0 0 #0000;
+      --tw-ring-inset: initial;
+      --tw-ring-offset-width: 0px;
+      --tw-ring-offset-color: #fff;
+      --tw-ring-offset-shadow: 0 0 #0000;
+      --tw-outline-style: solid;
       --tw-blur: initial;
       --tw-brightness: initial;
       --tw-contrast: initial;

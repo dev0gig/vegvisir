@@ -4,51 +4,35 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Vegvisir — Find your way.</title>
-<meta name="description" content="Eine persönliche Bookmark-Sammlung. Find your way." />
-<meta name="theme-color" content="#D4A373" />
+<meta name="description" content="Persönliche Startseite: Favoriten und Werkzeuge. Find your way." />
+<meta name="theme-color" content="#1B1815" />
 
-<!-- Favicon -->
+<!-- Favicon + Install-Icon (Chrome „Seite installieren" nutzt das Manifest
+     nur noch für Name und Icon — einen Service Worker gibt es nicht mehr). -->
 <link rel="icon" type="image/png" href="./assets/favicon.png" />
-
-<!-- Installierbar (PWA) -->
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="Vegvisir" />
 
 <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <input id="importFile" type="file" accept=".json,application/json" hidden />
-
   <div class="wrap">
     <main class="home" id="home">
-      <div id="homeNote"></div>
       <div id="homeGrid"></div>
     </main>
   </div>
 
-  <div class="drop-veil" id="dropVeil">
-    <div class="drop-card">
-      <i data-lucide="file-down" class="drop-ico"></i>
-      <p class="drop-title">Datei hier ablegen</p>
-      <p class="drop-sub">JSON → Bookmarks</p>
-    </div>
-  </div>
-
-  <!-- Feste Leiste unten: nur die Suche. Alles andere (anlegen, importieren,
-       sichern, Werkzeuge) läuft über die Slash-Befehle bzw. die Kacheln. -->
+  <!-- Feste Leiste unten: nur die Suche. Alles andere (anlegen, Werkzeuge)
+       läuft über die Slash-Befehle bzw. die Kacheln. -->
   <div class="bottombar" id="bottombar">
-    <div class="searchbar hidden" id="searchbar">
+    <div class="searchbar" id="searchbar">
       <i data-lucide="search" class="search-ico"></i>
       <input id="searchInput" type="search" placeholder="Suchen…" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
       <button class="search-clear" id="searchClear" aria-label="Suche beenden"><i data-lucide="x"></i></button>
     </div>
   </div>
 
-  <!-- Lucide liegt lokal im Repo, damit die App auch ohne Netz vollständig ist. -->
+  <!-- Lucide liegt lokal im Repo, damit kein fremder Server gebraucht wird. -->
   <script src="./js/vendor/lucide.min.js"></script>
   <script src="./tools.js"></script>
   <script type="module" src="./js/main.js"></script>

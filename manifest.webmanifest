@@ -1,7 +1,7 @@
 {
   "name": "Vegvisir",
   "short_name": "Vegvisir",
-  "description": "Eine persönliche Bookmark-Sammlung. Find your way.",
+  "description": "Persönliche Startseite: Favoriten und Werkzeuge. Find your way.",
   "lang": "de",
   "dir": "ltr",
   "start_url": "./",
@@ -9,8 +9,8 @@
   "id": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#EFE6D3",
-  "theme_color": "#D4A373",
+  "background_color": "#1B1815",
+  "theme_color": "#1B1815",
   "icons": [
     { "src": "./assets/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any" },
     { "src": "./assets/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any" },

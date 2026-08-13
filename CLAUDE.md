@@ -9,10 +9,10 @@ und gepusht** — ohne Rückfrage (Patricks Dauer-Freigabe).
   und **warum**, so dass Patrick sie ohne Fachwissen versteht.
 - Nach dem Push kurz Bescheid geben.
 
-## Headless testen — ist jetzt möglich und Pflicht
+## Headless testen — ist möglich und Pflicht
 
-Das GitHub-OAuth-Login-Gate ist weg (kein Supabase mehr, alle Daten liegen im
-`localStorage`). Die App startet also sofort und ist voll automatisierbar.
+Die App startet sofort (kein Login, Favoriten im `localStorage`) und ist voll
+automatisierbar.
 
 **Regel:** Bei Änderungen hier **im Browser verifizieren**, nicht nur
 `node --check` laufen lassen:
@@ -20,8 +20,9 @@ Das GitHub-OAuth-Login-Gate ist weg (kein Supabase mehr, alle Daten liegen im
 - Server starten (`python3 -m http.server 8899`), mit Playwright
   (`~/repos/toride/node_modules`) durchklicken, Screenshots ansehen.
 - Testdaten über `localStorage.setItem("vegvisir.data", …)` setzen.
-- Mindestens prüfen: Kachelwand, Ziehen/Umsortieren, Ordner-Geste (0,7 s über
-  der Mitte halten), Dialoge, Handy-Breite (kein seitliches Scrollen).
+- Mindestens prüfen: beide Gruppen (Favoriten + Werkzeuge), Ziehen/Umsortieren,
+  Ordner-Geste (0,7 s über der Mitte halten), Dialoge, Werkzeug-Fenster, die
+  Unterseiten `cardcrop/` und `mtg/`, Handy-Breite (kein seitliches Scrollen).
 
 Alles Weitere — Aufbau, Datenformat und die beiden Stolperfallen beim Ziehen —
 steht in **AGENTS.md**.

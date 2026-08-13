@@ -198,6 +198,11 @@ function hitTest() {
   const over = el.closest(".tile");
   const panel = el.closest(".folder-panel");
 
+  // Die Werkzeug-Gruppe ist ein eigenes, festes Raster — dort wird weder
+  // einsortiert noch ein Ordner gebildet. Alles außerhalb des Favoriten-
+  // Rasters zählt als freie Fläche.
+  if (over && !st.grid.contains(over)) { clearHot(); return; }
+
   // Über einer fremden Kachel? (Die eigene und der Platzhalter zählen nicht.)
   if (over && over !== st.tile && over !== st.ph) {
     const r = over.getBoundingClientRect();
@@ -229,7 +234,7 @@ function hitTest() {
 
   // Über der freien Fläche der Kachelwand → ans Ende der obersten Ebene.
   const grid = st.grid;
-  if (el.closest(".tile-grid") && st.ph.parentElement !== grid) {
+  if (el.closest(".tile-grid") === grid && st.ph.parentElement !== grid) {
     flip(() => grid.appendChild(st.ph));
   }
 }

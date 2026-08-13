@@ -16,10 +16,13 @@ export function getTools() { return TOOLS; }
 function focusWindow(el) { el.style.zIndex = ++winZ; }
 
 /* Ein Werkzeug anhand seiner id öffnen (Kachel und Slash-Befehle). Ist es schon
-   offen, wird es nur nach vorne geholt statt umgeschaltet. */
+   offen, wird es nur nach vorne geholt statt umgeschaltet.
+   Seiten-Werkzeuge (kind:"page", z.B. CardCrop) haben kein Fenster — sie
+   sind eigene Unterseiten, dorthin wird einfach navigiert. */
 export function openToolById(id) {
   const tool = TOOLS.find((t) => t.id === id);
   if (!tool) return;
+  if (tool.kind === "page") { location.href = tool.url; return; }
   if (openWindows[id]) { focusWindow(openWindows[id].el); return; }
   openToolWindow(tool);
 }

@@ -1,45 +1,39 @@
 # Vegvisir
 
-Persönliche Bookmark-Startseite im **Windows-Metro-Stil**: farbige Kacheln,
-frei verschiebbar, Ordner per Ziehen. Läuft komplett im Browser — **kein
-Server, kein Login, keine Cloud**.
+Persönliche Startseite im **Windows-Metro-Stil** (eckig, warm-dunkel) mit zwei
+Gruppen:
 
-## Was die App kann
+- **Favoriten** — Bookmarks als farbige Kacheln, frei verschiebbar, Ordner per
+  Ziehen. Liegen nur im Browser (localStorage), kein Server, kein Login.
+- **Werkzeuge** — feste Kacheln aus `tools.js`. Kleine Werkzeuge öffnen als
+  frei verschiebbares Fenster, große als eigene Unterseite:
 
-- **Kachelwand:** Jedes Bookmark ist eine farbige Kachel mit dem Favicon in der
-  Mitte. Drei Größen: klein (1×1), breit (2×1), groß (2×2).
-- **Kachelfarbe aus dem Favicon:** Die häufigste kräftige Farbe des Icons wird
-  ausgelesen und auf eine feste Helligkeit gebracht, damit die weiße Schrift
-  überall lesbar bleibt (Kontrast mindestens 4,5:1).
-  ⚠️ Das geht nur bei **eingebetteten** Bildern (`data:`-Adressen). Fremde
-  Favicon-Adressen (z.B. Googles Dienst `t2.gstatic.com`) darf der Browser aus
-  Sicherheitsgründen nicht auslesen — die bekommen die Standardfarbe. Fügt man
-  im Bearbeiten-Dialog ein eigenes Bild aus der Zwischenablage ein, ist es
-  eingebettet und die Farbe wird berechnet.
-- **Selbst verwalten:** Bookmarks und Ordner anlegen, bearbeiten, löschen,
-  Größe wählen — über das Kachelmenü (Rechtsklick bzw. langer Druck), das
-  Menü unten rechts oder die Slash-Befehle.
-- **Ziehen:** Kacheln frei umsortieren. **Mitte einer anderen Kachel 0,7 s
-  halten** → daraus wird ein Ordner (der Ring baut sich sichtbar auf).
-  Funktioniert mit Maus, Finger und Stift.
-- **Ordner** klappen an Ort und Stelle im Raster auf, direkt unter ihrer Kachel.
-- **Suche** (feste Leiste unten) durchsucht alle Bookmarks, auch die in Ordnern.
-- **Import/Export:** JSON-Datei per Knopf, `/import` oder Ziehen auf die Seite.
-  Sind schon Bookmarks da, wird gefragt: **ersetzen oder zusammenführen**.
+| Werkzeug | Art | Aufruf |
+| --- | --- | --- |
+| Rechner | Fenster | Kachel oder `/calc` |
+| Arbeitszeit (Dienstzeiten) | Fenster | Kachel oder `/zeit` |
+| PDF Duplex-Fixer | Fenster | Kachel oder `/duplex` |
+| CardCrop (Karten-Scans zerlegen) | Unterseite `cardcrop/` | Kachel oder `/crop` |
+| MTG-Suche (alte Magic-Sets) | Unterseite `mtg/` | Kachel oder `/mtg` |
 
-## ⚠️ Die Daten liegen NUR in diesem Browser
+CardCrop und die MTG-Suche waren früher eigene Repos (`cardcrop`,
+`old-mtg-searcher`) und leben seit 13.8.2026 hier als Unterseiten — mit ihrem
+eigenen Look, das ist Absicht. Alle Bibliotheken (pdf.js, JSZip, pdf-lib,
+Lucide) liegen lokal im Repo; nur die MTG-Suche braucht Netz (Scryfall-API).
 
-Es gibt keine Cloud und keine Synchronisierung. Browserdaten löschen, anderes
-Gerät oder anderer Browser = die Bookmarks sind weg.
+## Favoriten bedienen
 
-**Deshalb regelmäßig sichern:** `/export` (oder „Sichern" im Menü) lädt eine
-JSON-Datei herunter. Ist die letzte Sicherung älter als 14 Tage, erinnert die
-App oben mit einem Streifen daran.
+- **Kachelwand:** drei Größen (1×1, 2×1, 2×2), Farbe kommt aus dem Favicon
+  (nur bei eingebetteten Bildern auslesbar, sonst Standardfarbe).
+- **Kachelmenü:** Rechtsklick bzw. langer Druck — bearbeiten, Größe, löschen.
+- **Ziehen:** frei umsortieren; **Mitte einer anderen Kachel 0,7 s halten**
+  → Ordner. Ordner klappen an Ort und Stelle im Raster auf.
+- **Suche** (feste Leiste unten) durchsucht alle Bookmarks, auch in Ordnern.
+  Enter ohne Slash = Websuche bei DuckDuckGo.
 
-`/undo` nimmt die letzte größere Änderung zurück (Import, Löschen, Ordner
-bilden oder auflösen). Aufgehoben werden die letzten **zwei** Stände — mehr
-passt nicht in den Browser-Speicher (rund 5 MB, ein voller Datensatz mit
-eingebetteten Icons wiegt schon etwa 0,7 MB).
+⚠️ Die Favoriten liegen NUR in diesem Browser. Browserdaten löschen oder
+anderes Gerät = Kacheln weg. Eine Sicherung/Import gibt es bewusst nicht mehr —
+Vegvisir ist eine Arbeitsfläche, keine Datenbank.
 
 ## Slash-Befehle
 
@@ -47,21 +41,17 @@ eingebetteten Icons wiegt schon etwa 0,7 MB).
 | --- | --- |
 | `/neu` | Neues Bookmark anlegen |
 | `/ordner` | Neuen Ordner anlegen |
-| `/import` | Bookmarks importieren (JSON) |
-| `/export` | Bookmarks sichern (JSON) |
-| `/undo` | Letzte größere Änderung zurücknehmen |
 | `/g <text>` | Websuche bei Google |
 | `/c <rechnung>` | Blitzrechner direkt in der Suchzeile |
 | `/calc`, `/zeit`, `/duplex` | Werkzeug-Fenster öffnen |
-
-Enter ohne Slash startet eine Websuche bei DuckDuckGo.
+| `/crop`, `/mtg` | Unterseiten-Werkzeug öffnen |
 
 ## Design / CSS bauen (Tailwind)
 
-Das Design (Neo-Minimalismus: Creme-Flächen, Anthrazit-Konturen, Gelb-Akzent)
-lebt als Quelle in **`src/app.tailwind.css`** und wird mit Tailwind v4 zu
-**`styles.css`** kompiliert. Die fertige `styles.css` ist eingecheckt — das
-Hosting braucht keinen Build-Schritt.
+Warm-dunkles Metro-Design: dunkle, warme Flächen, **keine Rundungen**, dünne
+Konturlinien, warmes Gelb als Akzent. Quelle ist **`src/app.tailwind.css`**,
+kompiliert mit Tailwind v4 zu **`styles.css`** (eingecheckt — das Hosting
+braucht keinen Build-Schritt).
 
 ```
 npm install        # einmalig (holt Tailwind)
@@ -70,29 +60,22 @@ npm run css:watch  # dito, baut bei jeder Änderung neu
 ```
 
 **Wichtig:** Nie `styles.css` direkt bearbeiten, immer die Quelle unter `src/`
-ändern und neu bauen (sonst überschreibt der nächste Build die Änderung).
+ändern und neu bauen. Die Unterseiten `cardcrop/` und `mtg/` haben ihr eigenes,
+davon unabhängiges CSS.
 
-## Als App installieren (PWA)
+## Keine PWA mehr
 
-Vegvisir lässt sich über den Browser („Zum Startbildschirm hinzufügen" bzw.
-„App installieren") wie eine normale App ablegen: eigenes Icon, eigener
-Fensterrahmen ohne Browserleiste, **und sie läuft ohne Netz** — die Bookmarks
-liegen sowieso im Browser, und der Service Worker (`sw.js`) hat App-Gerüst,
-Schriften und Icons gespeichert.
-
-- `manifest.webmanifest` — Name, Farben, Icons.
-- `sw.js` — Cache. Seitenaufruf: erst Netz, sonst Cache. Alles andere: sofort
-  aus dem Cache und im Hintergrund erneuern (neue Version ist beim übernächsten
-  Start da). Bei größeren Umbauten in `sw.js` die Zeile `const CACHE` hochzählen.
-- Icons neu erzeugen: `npm i --no-save sharp && node scripts/gen-icons.mjs`
-  (Symbolgröße wird dabei nachgemessen: 41,7 % normal, 55 % maskable).
+Den Service Worker gibt es seit 13.8.2026 nicht mehr (Chrome kann Seiten auch
+ohne installieren; fürs Handy gibt es Toride). `js/main.js` meldet den alten
+Worker bei Besuchern ab und leert seine Caches — diese Zeilen müssen bleiben,
+solange irgendwo die alte Version installiert sein könnte. Das
+`manifest.webmanifest` bleibt nur für Name + Icon beim „Seite installieren".
 
 ## Veröffentlichen
 
 Das Repo liegt **nur auf GitHub** (`dev0gig/vegvisir`, öffentlich). **Push auf
 `main` = live** unter https://dev0gig.github.io/vegvisir/ — GitHub Pages baut
 direkt aus dem Branch (deshalb die leere `.nojekyll`, ein Build dauert ~30–45 s).
-Einen Umweg über Forgejo gibt es seit 6.8.2026 nicht mehr.
 
 ## Lokal starten
 

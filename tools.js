@@ -18,9 +18,13 @@
    Optional kannst du eine Aufräum-Funktion zurückgeben – sie wird aufgerufen,
    wenn das Fenster geschlossen wird (z.B. um Timer zu stoppen).
 
-   NEUES TOOL = einfach ein weiteres Objekt in diese Liste eintragen. vegvisir
-   legt dafür automatisch eine Kachel auf der Wand an; ein Klick öffnet das
-   Werkzeug als Fenster. */
+   Daneben gibt es SEITEN-Werkzeuge — größere Tools mit eigener Unterseite
+   statt eines Fensters:
+
+     { id, name, icon, kind: "page", url: "unterordner/" }
+
+   NEUES TOOL = einfach ein weiteres Objekt in diese Liste eintragen. Die
+   Werkzeug-Gruppe auf der Startseite baut sich daraus automatisch auf. */
 
 window.VEG_TOOLS = [
   {
@@ -453,5 +457,21 @@ window.VEG_TOOLS = [
         .catch(() => { container.innerHTML = '<div class="dp-loading">PDF-Werkzeug konnte nicht geladen werden.</div>'; });
       return () => { if (typeof cleanup === "function") cleanup(); };
     }
+  },
+
+  /* ---- Seiten-Werkzeuge (eigene Unterseiten, kein Fenster) ---- */
+  {
+    id: "cardcrop",
+    name: "CardCrop",
+    icon: "crop",
+    kind: "page",
+    url: "cardcrop/",
+  },
+  {
+    id: "mtg",
+    name: "MTG-Suche",
+    icon: "layers",
+    kind: "page",
+    url: "mtg/",
   }
 ];

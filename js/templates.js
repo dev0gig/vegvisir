@@ -9,6 +9,10 @@ import { DEFAULT_TILE_COLOR } from "./color.js";
 
 const sizeClass = (s) => "size-" + (["s", "w", "l"].includes(s) ? s : "s");
 
+/* Einheitliche Farbe der Werkzeug-Kacheln — sie haben kein Favicon, aus dem
+   sich eine Farbe ableiten ließe, und sollen als Gruppe erkennbar sein. */
+const TOOL_TILE_COLOR = "#4B4A44";
+
 /* ---- Kachel (einzelnes Bookmark) ---- */
 export function tileHTML(bm) {
   const name = bm.name || hostOf(bm.url);
@@ -26,23 +30,28 @@ export function tileHTML(bm) {
     </a>`;
 }
 
-/* ---- Werkzeug-Kachel (Rechner, Arbeitszeit, PDF-Duplex …) ---- */
-/* Sieht aus wie eine Bookmark-Kachel, öffnet aber ein Werkzeug-Fenster.
-   Deshalb ein <button> statt eines Links. */
+/* ---- Werkzeug-Kachel ---- */
+/* Die Werkzeuge kommen fest aus tools.js und stehen in ihrer eigenen Gruppe
+   unter den Favoriten. Zwei Sorten:
+   - Fenster-Werkzeuge (Rechner, Arbeitszeit, PDF-Duplex) öffnen ein frei
+     verschiebbares Fenster → <button>.
+   - Seiten-Werkzeuge (CardCrop, MTG-Suche) sind eigene Unterseiten → <a>. */
 export function toolTileHTML(t) {
   const name = t.name || "Werkzeug";
+  const face = `<span class="tile-face"><i data-lucide="${escAttr(t.icon || "wrench")}"></i></span>`;
+  const label = `<span class="tile-name">${esc(name)}</span>`;
+  if (t.kind === "page") {
+    return `
+      <a class="tile tool size-s" data-type="page" href="${escAttr(t.url)}"
+         style="--tile:${escAttr(TOOL_TILE_COLOR)}" title="${escAttr(name)}">
+        ${face}${label}
+      </a>`;
+  }
   return `
-    <button class="tile tool ${sizeClass(t.size)}" data-id="${escAttr(t.id)}" data-type="tool"
-            data-tool="${escAttr(t.toolId)}"
-            style="--tile:${escAttr(t.color || DEFAULT_TILE_COLOR)}" title="${escAttr(name)}">
-      <span class="tile-face"><i data-lucide="${escAttr(t.icon || "wrench")}"></i></span>
-      <span class="tile-name">${esc(name)}</span>
+    <button class="tile tool size-s" data-type="tool" data-tool="${escAttr(t.id)}"
+            style="--tile:${escAttr(TOOL_TILE_COLOR)}" title="${escAttr(name)}">
+      ${face}${label}
     </button>`;
-}
-
-/* Eine Kachel im Raster — je nach Art Bookmark oder Werkzeug. */
-export function leafTileHTML(it) {
-  return it.type === "tool" ? toolTileHTML(it) : tileHTML(it);
 }
 
 /* ---- Mini-Icon in der Ordner-Vorschau ---- */
@@ -82,7 +91,7 @@ export function folderTileHTML(f) {
 export function folderPanelHTML(f) {
   const links = f.items || [];
   const inner = links.length
-    ? links.map(leafTileHTML).join("")
+    ? links.map(tileHTML).join("")
     : `<p class="fp-empty">Dieser Ordner ist leer. Zieh eine Kachel hinein oder lege über das Kachelmenü ein Bookmark an.</p>`;
   return `<div class="folder-panel" data-panel="${escAttr(f.id)}">${inner}</div>`;
 }

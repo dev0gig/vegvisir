@@ -8,9 +8,6 @@
    (von search.js befüllt) und ein Panel für Vorschau/Ergebnisse/Meldungen. */
 
 import { openToolById } from "./toolwindows.js";
-import { pickFile, exportData } from "./importexport.js";
-import { undo, canUndo } from "./store.js";
-import { render } from "./render.js";
 import { openBookmarkEditor, openFolderEditor } from "./editor.js";
 import { esc } from "./dom.js";
 
@@ -24,9 +21,8 @@ export const COMMANDS = [
   { cmd: "/calc",   arg: false, live: false, icon: "calculator",  desc: "Taschenrechner-Fenster öffnen" },
   { cmd: "/zeit",   arg: false, live: false, icon: "clock",       desc: "Dienstzeiten-Rechner öffnen" },
   { cmd: "/duplex", arg: false, live: false, icon: "file-stack",  desc: "PDF Duplex-Fixer öffnen (Scan-Seiten sortieren)" },
-  { cmd: "/export", arg: false, live: false, icon: "hard-drive-download", desc: "Bookmarks als Datei sichern" },
-  { cmd: "/import", arg: false, live: false, icon: "upload",      desc: "Bookmarks importieren (JSON)" },
-  { cmd: "/undo",   arg: false, live: false, icon: "undo-2",      desc: "Letzte größere Änderung rückgängig machen" },
+  { cmd: "/crop",   arg: false, live: false, icon: "crop",        desc: "CardCrop öffnen (Karten-Scans zerlegen)" },
+  { cmd: "/mtg",    arg: false, live: false, icon: "layers",      desc: "MTG-Suche öffnen (alte Magic-Karten)" },
 ];
 
 const byCmd = Object.fromEntries(COMMANDS.map((c) => [c.cmd, c]));
@@ -92,13 +88,6 @@ export function previewCommand(text) {
   hidePanel();
 }
 
-/* ---- Rückgängig ---- */
-function doUndo() {
-  if (!canUndo()) { flash("Es gibt nichts zum Rückgängigmachen.", "warn"); return; }
-  if (undo()) { render(); flash("Letzte größere Änderung zurückgenommen.", "ok"); }
-  else flash("Rückgängig hat nicht geklappt.", "warn");
-}
-
 /* Führt einen (vollständig getippten) Befehl aus. Gibt zurück, was mit dem
    Eingabefeld passieren soll:
      { handled, clear }  handled=false → kein bekannter Befehl
@@ -118,9 +107,8 @@ export async function runCommand(text) {
     case "/calc":   openToolById("rechner");        return { handled: true, clear: true };
     case "/zeit":   openToolById("arbeitszeit");    return { handled: true, clear: true };
     case "/duplex": openToolById("pdfduplex");      return { handled: true, clear: true };
-    case "/import": pickFile();                     return { handled: true, clear: true };
-    case "/export": exportData();                   return { handled: true, clear: true };
-    case "/undo":   doUndo();                       return { handled: true, clear: true };
+    case "/crop":   openToolById("cardcrop");       return { handled: true, clear: true };
+    case "/mtg":    openToolById("mtg");            return { handled: true, clear: true };
     default: return { handled: false };
   }
 }

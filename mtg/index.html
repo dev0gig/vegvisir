@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Magic Alte Sets Import Tool (vor M15)</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="container" id="app">
+    <a class="veg-back" href="..">← Vegvisir</a>
+    <h1>
+        🃏 Alte Sets Import
+        <small>alle Sets <strong>vor M15</strong> (bis 2014)</small>
+        <span id="saveIndicator" class="save-indicator">💾 automatisch gespeichert</span>
+    </h1>
+
+    <div class="info-box">
+        <strong>ℹ️ Alle Sets vor Magic 2015 (M15)</strong> – 
+        das waren die Sets, bei denen <strong>kein Set-Code</strong> auf der Karte stand.
+        <br><strong>🌍 Suche akzeptiert deutsche und englische Kartennamen</strong>
+        <br><strong>📊 Ladebalken:</strong> <span class="legend-dot en"></span> EN geladen &nbsp; <span class="legend-dot de"></span> DE geladen
+        <br><strong>💾 Deine Liste wird automatisch gespeichert</strong> – 
+        du kannst jederzeit pausieren.
+        <br><span id="setCounter" class="set-counter">Lade Sets …</span>
+    </div>
+
+    <!-- ========== SCHRITT 1: SET WÄHLEN ========== -->
+    <div>
+        <label>📦 1. Set wählen</label>
+        <div class="set-grid-wrapper">
+            <input type="text" id="setSearch" class="set-search-input" placeholder="🔍 Set suchen (z.B. Mirage, Invasion, M14) …" />
+            <div class="set-icon-grid" id="setGrid">
+                <div class="text-muted" style="grid-column:1/-1; padding:1rem; text-align:center;">Lade Sets …</div>
+            </div>
+        </div>
+        <div class="legend">
+            <span><span class="legend-dot en"></span> Englische Karten geladen</span>
+            <span><span class="legend-dot de"></span> Deutsche Karten geladen</span>
+            <span style="margin-left:auto;" id="overallProgress">0/0 Sets komplett</span>
+        </div>
+    </div>
+
+    <!-- ========== SCHRITT 2: KARTE SUCHEN ========== -->
+    <div class="row" style="margin-top:1.2rem;">
+        <div class="col" style="flex:3;">
+            <label>🔍 2. Kartennamen eingeben <span style="font-weight:300;font-size:0.7rem;color:#8a96a8;">(deutsch oder englisch)</span></label>
+            <div class="search-section">
+                <input type="text" id="cardSearch" placeholder="z.B. Schwarzer Lotus, Black Lotus, Arschak" disabled />
+                <button id="searchBtn" disabled>Suchen</button>
+            </div>
+            <div id="suggestionsContainer" class="suggestions hidden"></div>
+        </div>
+    </div>
+
+    <!-- ========== SCHRITT 3: LISTE ========== -->
+    <div>
+        <div class="flex-center" style="justify-content:space-between;">
+            <label>📋 3. Ausgewählte Karten <span id="cardCount" class="badge">0</span></label>
+            <span style="font-size:0.7rem; color:#6a8a5a;" id="storageInfo">gespeichert</span>
+        </div>
+        <div class="card-list" id="cardList">
+            <div class="text-muted" style="padding:0.8rem; text-align:center;">Noch keine Karten ausgewählt.</div>
+        </div>
+    </div>
+
+    <!-- ========== SCHRITT 4: EXPORT ========== -->
+    <div class="export-area">
+        <label style="width:100%;">📤 4. Export (MTG Arena Format)</label>
+        <textarea id="exportArea" readonly placeholder="Hier erscheint deine Export-Liste …"></textarea>
+        <div style="display:flex; gap:0.8rem; flex-wrap:wrap;">
+            <button id="exportBtn">📋 In Zwischenablage kopieren</button>
+            <button id="clearBtn" style="background:#5a4a4a;">🗑️ Liste leeren</button>
+        </div>
+        <div id="statusMsg" class="status">Bereit.</div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

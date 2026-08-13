@@ -1,17 +1,16 @@
 /* ============ DATEN (nur im Browser, ohne Cloud) ============ */
-/* Der localStorage ist die einzige Quelle der Wahrheit. Kein Server, kein
-   Login, keine Synchronisierung — was hier steht, steht nur in diesem Browser.
-   Deshalb gibt es den /export-Befehl und die Sicherungs-Erinnerung.
+/* Der localStorage ist die einzige Quelle der Wahrheit für die FAVORITEN.
+   Kein Server, kein Login, keine Synchronisierung — was hier steht, steht nur
+   in diesem Browser. Die Werkzeuge stehen NICHT hier drin: sie kommen fest
+   aus tools.js und brauchen keinen Speicher.
  *
  * Datenformat (Version 2):
  *   {
  *     version: 2,
  *     updatedAt: "…",          Zeitpunkt der letzten Änderung
- *     exportedAt: "…"|null,    Zeitpunkt der letzten Sicherung (fuer den Hinweis)
  *     items: [                 EINE geordnete Liste — die Reihenfolge ist die Anzeige
  *       { id, type:"bookmark", name, url, imageUrl, color, size, isFavorite },
- *       { id, type:"tool",     toolId, name, icon, color, size },
- *       { id, type:"folder",   name, color, size, items:[ …bookmarks/tools… ] }
+ *       { id, type:"folder",   name, color, size, items:[ …bookmarks… ] }
  *     ]
  *   }
  *
@@ -22,22 +21,12 @@ import { uid, normUrl, hostOf } from "./dom.js";
 import { colorFromImage, DEFAULT_TILE_COLOR } from "./color.js";
 
 export const STORE_KEY = "vegvisir.data";
-const UNDO_KEY = "vegvisir.undo";
-
-/* Nur zwei Sicherungen aufheben. Grund: Der Browser-Speicher fasst rund 5 MB,
-   ein voller Datensatz mit eingebetteten Icons wiegt schon ~0,7 MB. Mehr
-   Sicherungen würden den Speicher sprengen. */
-const UNDO_MAX = 2;
 
 export const SIZES = ["s", "w", "l"];
 export const SIZE_LABELS = { s: "Klein", w: "Breit", l: "Groß" };
 
-/* Einheitliche Farbe der Werkzeug-Kacheln — sie haben kein Favicon, aus dem
-   sich eine Farbe ableiten ließe, und sollen als Gruppe erkennbar sein. */
-export const TOOL_TILE_COLOR = "#4B4A44";
-
 function emptyData() {
-  return { version: 2, updatedAt: new Date().toISOString(), exportedAt: null, items: [] };
+  return { version: 2, updatedAt: new Date().toISOString(), items: [] };
 }
 
 /* ---- Lesen / Schreiben ---- */
@@ -54,9 +43,6 @@ export function getData() {
   return cache;
 }
 
-/* Schreibt den Stand weg. Läuft der Browser-Speicher über, werden zuerst die
-   Sicherungen für „Rückgängig" geopfert — die eigentlichen Bookmarks sind
-   wichtiger als die Möglichkeit, einen Schritt zurückzugehen. */
 export function save(data) {
   const d = data || cache;
   if (!d) return false;
@@ -66,30 +52,25 @@ export function save(data) {
     localStorage.setItem(STORE_KEY, JSON.stringify(d));
     return true;
   } catch {
-    try {
-      localStorage.removeItem(UNDO_KEY);
-      localStorage.setItem(STORE_KEY, JSON.stringify(d));
-      return true;
-    } catch {
-      alert("Der Browser-Speicher ist voll. Die letzte Änderung konnte nicht gesichert werden.\n\nTipp: Exportiere deine Bookmarks (/export) und entferne sehr große Icons.");
-      return false;
-    }
+    alert("Der Browser-Speicher ist voll. Die letzte Änderung konnte nicht gesichert werden.\n\nTipp: Entferne sehr große eingefügte Icons.");
+    return false;
   }
 }
 
 export function isEmpty() { return getData().items.length === 0; }
 
-/* ---- Migration: altes Toride-Format (Version 1) → Version 2 ---- */
+/* ---- Migration: ältere Stände → aktuelle Form ---- */
 
 /* Nimmt ein beliebiges eingelesenes Objekt und macht daraus gültige Version-2-
-   Daten. Versteht sowohl das alte Format ({folders, bookmarks}) als auch das
-   neue ({items}). Wird vom Speicher UND vom Import benutzt. */
+   Daten. Versteht das ganz alte Toride-Format ({folders, bookmarks}) und
+   frühere Version-2-Stände. Werkzeug-Kacheln (type:"tool") aus alten Ständen
+   werden dabei stillschweigend entfernt — die Werkzeuge haben inzwischen ihre
+   eigene, feste Gruppe und stehen nicht mehr zwischen den Favoriten. */
 export function migrate(raw) {
   if (raw && raw.version === 2 && Array.isArray(raw.items)) {
     return {
       version: 2,
       updatedAt: raw.updatedAt || new Date().toISOString(),
-      exportedAt: raw.exportedAt || null,
       items: raw.items.map(normalizeItem).filter(Boolean),
     };
   }
@@ -108,23 +89,26 @@ export function migrate(raw) {
     items.push(normalizeItem({
       type: "folder",
       name: f.name || "Ordner",
-      items: [...(f.bookmarks || [])].sort(byName).map((b) => normalizeItem({ type: "bookmark", ...b })),
+      items: [...(f.bookmarks || [])].sort(byName).map((b) => normalizeBookmark({ ...b })),
     }));
   });
-  [...roots].sort(byName).forEach((b) => items.push(normalizeItem({ type: "bookmark", ...b })));
+  [...roots].sort(byName).forEach((b) => items.push(normalizeBookmark({ ...b })));
 
   // Favoriten nach vorne holen und als breite Kachel zeigen — das gibt der
   // Kachelwand Struktur statt 90 gleich großer Quadrate. Größe ist pro Kachel
   // jederzeit über das Menü änderbar.
-  items.forEach((it) => { if (it.type === "bookmark" && it.isFavorite) it.size = "w"; });
-  items.sort((a, b) => (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0));
+  const clean = items.filter(Boolean);
+  clean.forEach((it) => { if (it.type === "bookmark" && it.isFavorite) it.size = "w"; });
+  clean.sort((a, b) => (b.isFavorite ? 1 : 0) - (a.isFavorite ? 1 : 0));
 
-  return { version: 2, updatedAt: new Date().toISOString(), exportedAt: null, items };
+  return { version: 2, updatedAt: new Date().toISOString(), items: clean };
 }
 
-/* Ein einzelnes Element auf saubere Form bringen (fehlende Felder ergänzen). */
+/* Ein einzelnes Element auf saubere Form bringen (fehlende Felder ergänzen).
+   Werkzeug-Kacheln aus alten Ständen liefern null und fallen damit raus. */
 function normalizeItem(raw) {
   if (!raw || typeof raw !== "object") return null;
+  if (raw.type === "tool") return null;
 
   if (raw.type === "folder" || Array.isArray(raw.bookmarks)) {
     const inner = Array.isArray(raw.items) ? raw.items : (raw.bookmarks || []);
@@ -134,37 +118,15 @@ function normalizeItem(raw) {
       name: String(raw.name || "Ordner"),
       color: raw.color || null,
       size: SIZES.includes(raw.size) ? raw.size : "s",
-      // Ordner im Ordner gibt es nicht: alles darin ist Bookmark oder Werkzeug.
-      items: inner.map((b) => normalizeLeaf(b)).filter(Boolean),
+      // Ordner im Ordner gibt es nicht: alles darin ist ein Bookmark.
+      items: inner.map((b) => normalizeBookmark(b)).filter(Boolean),
     };
   }
-  return normalizeLeaf(raw);
-}
-
-/* Alles, was in einem Ordner liegen darf: Bookmark oder Werkzeug. */
-function normalizeLeaf(raw) {
-  if (raw && raw.type === "tool") return normalizeTool(raw);
   return normalizeBookmark(raw);
 }
 
-/* Werkzeug-Kachel. `toolId` verweist auf einen Eintrag aus tools.js —
-   Name und Icon werden beim Start von dort aufgefrischt (ensureToolTiles). */
-function normalizeTool(raw) {
-  const toolId = String(raw.toolId || "").trim();
-  if (!toolId) return null;
-  return {
-    id: raw.id || "tool-" + toolId,
-    type: "tool",
-    toolId,
-    name: String(raw.name || toolId),
-    icon: String(raw.icon || "wrench"),
-    color: raw.color || TOOL_TILE_COLOR,
-    size: SIZES.includes(raw.size) ? raw.size : "s",
-  };
-}
-
 function normalizeBookmark(raw) {
-  if (!raw || typeof raw !== "object") return null;
+  if (!raw || typeof raw !== "object" || raw.type === "tool") return null;
   const url = String(raw.url || "").trim();
   if (!url) return null;
   return {
@@ -179,46 +141,7 @@ function normalizeBookmark(raw) {
   };
 }
 
-export { normalizeItem, normalizeBookmark, normalizeTool };
-
-/* ---- Werkzeug-Kacheln mit tools.js abgleichen ---- */
-
-/* Sorgt dafür, dass es zu jedem Werkzeug aus tools.js GENAU EINE Kachel gibt:
-   fehlende werden hinten angehängt, doppelte und verwaiste (Werkzeug gibt es
-   nicht mehr) verschwinden, Name und Icon kommen frisch aus tools.js.
-   Wo die Kachel liegt und wie groß sie ist, bleibt unangetastet. */
-export function ensureToolTiles(tools) {
-  const list = Array.isArray(tools) ? tools : [];
-  const byId = new Map(list.map((t) => [t.id, t]));
-  const data = getData();
-  const seen = new Set();
-  let changed = false;
-
-  const sweep = (arr) => {
-    for (let i = arr.length - 1; i >= 0; i--) {
-      const it = arr[i];
-      if (it.type !== "tool") continue;
-      const tool = byId.get(it.toolId);
-      if (!tool || seen.has(it.toolId)) { arr.splice(i, 1); changed = true; continue; }
-      seen.add(it.toolId);
-      const name = tool.name || it.toolId;
-      const icon = tool.icon || "wrench";
-      if (it.name !== name || it.icon !== icon) { it.name = name; it.icon = icon; changed = true; }
-    }
-  };
-
-  sweep(data.items);
-  data.items.forEach((it) => { if (it.type === "folder") sweep(it.items); });
-
-  list.forEach((t) => {
-    if (seen.has(t.id)) return;
-    data.items.push(normalizeTool({ toolId: t.id, name: t.name, icon: t.icon }));
-    changed = true;
-  });
-
-  if (changed) save(data);
-  return changed;
-}
+export { normalizeItem, normalizeBookmark };
 
 /* ---- Suchen / Auslesen ---- */
 
@@ -236,8 +159,7 @@ export function findItem(id) {
   return null;
 }
 
-/* Alle Bookmarks flach (oberste Ebene + alle Ordnerinhalte) — für die Suche.
-   Werkzeuge bleiben draußen: die ruft man über die Slash-Befehle auf. */
+/* Alle Bookmarks flach (oberste Ebene + alle Ordnerinhalte) — für die Suche. */
 export function allBookmarks() {
   const out = [];
   getData().items.forEach((it) => {
@@ -245,37 +167,6 @@ export function allBookmarks() {
     else if (it.type === "bookmark") out.push(it);
   });
   return out;
-}
-
-/* ---- Rückgängig (lokale Sicherungen) ---- */
-
-/* Vor jeder Änderung, die Daten verlieren kann, den aktuellen Stand sichern. */
-export function pushUndo() {
-  try {
-    const list = JSON.parse(localStorage.getItem(UNDO_KEY) || "[]");
-    list.unshift({ at: new Date().toISOString(), data: getData() });
-    localStorage.setItem(UNDO_KEY, JSON.stringify(list.slice(0, UNDO_MAX)));
-  } catch {
-    // Speicher voll oder kaputt: Sicherung ist Kür, die Änderung geht trotzdem.
-    try { localStorage.removeItem(UNDO_KEY); } catch {}
-  }
-}
-
-export function canUndo() {
-  try { return JSON.parse(localStorage.getItem(UNDO_KEY) || "[]").length > 0; }
-  catch { return false; }
-}
-
-/* Letzten gesicherten Stand zurückholen. Gibt true zurück, wenn es geklappt hat. */
-export function undo() {
-  let list = [];
-  try { list = JSON.parse(localStorage.getItem(UNDO_KEY) || "[]"); } catch { return false; }
-  if (!list.length) return false;
-  const snap = list.shift();
-  try { localStorage.setItem(UNDO_KEY, JSON.stringify(list)); } catch {}
-  cache = migrate(snap.data);
-  save(cache);
-  return true;
 }
 
 /* ---- Ändern ---- */
@@ -321,7 +212,6 @@ export function updateItem(id, patch) {
 export function removeItem(id, { keepFolderContents = true } = {}) {
   const found = findItem(id);
   if (!found) return false;
-  pushUndo();
   if (found.item.type === "folder" && keepFolderContents && found.item.items.length) {
     found.list.splice(found.index, 1, ...found.item.items);
   } else {
@@ -335,7 +225,6 @@ export function removeItem(id, { keepFolderContents = true } = {}) {
 export function dissolveFolder(id) {
   const found = findItem(id);
   if (!found || found.item.type !== "folder") return false;
-  pushUndo();
   found.list.splice(found.index, 1, ...found.item.items);
   save();
   return true;
@@ -428,8 +317,6 @@ export function mergeItems(dragId, targetId) {
   if (!drag || !target) return null;
   if (drag.item.type === "folder") return null; // Ordner in Ordner gibt es nicht
 
-  pushUndo();
-
   if (target.item.type === "folder") {
     drag.list.splice(drag.index, 1);
     target.item.items.push(drag.item);
@@ -493,28 +380,4 @@ export async function refreshColor(id) {
   if (!found) return;
   found.item.color = await colorFromImage(found.item.imageUrl);
   save();
-}
-
-/* ---- Sicherungs-Erinnerung ---- */
-
-export function markExported() {
-  const data = getData();
-  data.exportedAt = new Date().toISOString();
-  save(data);
-}
-
-/* Tage seit der letzten Sicherung — oder null, wenn noch nie exportiert wurde. */
-export function daysSinceExport() {
-  const at = getData().exportedAt;
-  if (!at) return null;
-  const ms = Date.now() - Date.parse(at);
-  return Math.floor(ms / 86400000);
-}
-
-/* Alles ersetzen (Import „ersetzen" und Rückgängig benutzen das). */
-export function replaceAll(newData) {
-  pushUndo();
-  cache = migrate(newData);
-  save(cache);
-  return cache;
 }

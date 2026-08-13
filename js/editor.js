@@ -10,7 +10,6 @@ import {
   dissolveFolder, moveItem, refreshColor, SIZE_LABELS,
 } from "./store.js";
 import { render, closeFolder } from "./render.js";
-import { openToolById } from "./toolwindows.js";
 
 /* ---- Kleiner Dialog-Baukasten ---- */
 
@@ -324,9 +323,6 @@ export function openTileMenu(id, x, y) {
   const it = found.item;
   const inFolder = !!found.folder;
   const isFolder = it.type === "folder";
-  // Werkzeug-Kacheln kann man verschieben und in der Größe ändern, aber weder
-  // bearbeiten noch löschen — sie gehören zur App, nicht zu den Bookmarks.
-  const isTool = it.type === "tool";
 
   const sizeItems = ["s", "w", "l"].map((s) => `
     <button class="tm-item tm-size${it.size === s ? " active" : ""}" data-action="size" data-size="${s}">
@@ -337,17 +333,16 @@ export function openTileMenu(id, x, y) {
   menuEl.className = "tile-menu";
   menuEl.innerHTML = `
     <div class="tm-head">${esc(it.name || (isFolder ? "Ordner" : hostOf(it.url)))}</div>
-    ${isFolder || isTool ? "" : `
+    ${isFolder ? "" : `
       <button class="tm-item" data-action="open"><i data-lucide="external-link"></i>Öffnen</button>`}
-    ${isTool ? `<button class="tm-item" data-action="run"><i data-lucide="external-link"></i>Öffnen</button>` : `
-      <button class="tm-item" data-action="edit"><i data-lucide="pencil"></i>${isFolder ? "Umbenennen" : "Bearbeiten"}</button>`}
+    <button class="tm-item" data-action="edit"><i data-lucide="pencil"></i>${isFolder ? "Umbenennen" : "Bearbeiten"}</button>
     ${isFolder ? `<button class="tm-item" data-action="add"><i data-lucide="plus"></i>Bookmark hier anlegen</button>` : ""}
     <div class="tm-sep"></div>
     <div class="tm-sizes">${sizeItems}</div>
-    ${isTool && !inFolder ? "" : '<div class="tm-sep"></div>'}
+    <div class="tm-sep"></div>
     ${inFolder ? `<button class="tm-item" data-action="out"><i data-lucide="folder-output"></i>Aus dem Ordner holen</button>` : ""}
     ${isFolder ? `<button class="tm-item" data-action="dissolve"><i data-lucide="folder-open"></i>Ordner auflösen</button>` : ""}
-    ${isTool ? "" : `<button class="tm-item danger" data-action="delete"><i data-lucide="trash-2"></i>Löschen</button>`}`;
+    <button class="tm-item danger" data-action="delete"><i data-lucide="trash-2"></i>Löschen</button>`;
   document.body.appendChild(menuEl);
   if (window.lucide) lucide.createIcons();
 
@@ -365,7 +360,6 @@ export function openTileMenu(id, x, y) {
     closeTileMenu();
 
     if (action === "open") window.open(hrefOf(it.url), "_blank", "noopener,noreferrer");
-    else if (action === "run") openToolById(it.toolId);
     else if (action === "add") openBookmarkEditor(null, id);
     else if (action === "edit") isFolder ? openFolderEditor(id) : openBookmarkEditor(id, null);
     else if (action === "size") { updateItem(id, { size: btn.dataset.size }); render(); }

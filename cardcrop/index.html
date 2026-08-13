@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>CardCrop — Karten-Scanner &amp; Crop-Tool</title>
+  <meta name="description" content="Scans von Sammelkarten (Pokémon, Magic, Yu-Gi-Oh) in 8 Einzelkarten zerlegen — Raster manuell setzen, pixelgenau positionieren, als JPG oder ZIP herunterladen." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='18' y='10' width='48' height='68' rx='7' fill='%237c6cff'/%3E%3Crect x='34' y='22' width='48' height='68' rx='7' fill='%2334d0ff'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"></div>
+
+  <header class="app-header">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">
+        <span class="logo-card logo-card--back"></span>
+        <span class="logo-card logo-card--front"></span>
+      </span>
+      <div class="brand-text">
+        <h1>CardCrop</h1>
+        <p>Scan rein, 8&nbsp;Karten raus.</p>
+      </div>
+    </div>
+    <a class="ghost-link" href="..">← Vegvisir</a>
+  </header>
+
+  <main class="layout">
+    <!-- ===================== STEUERUNG ===================== -->
+    <aside class="panel controls">
+      <section class="step">
+        <h2><span class="step-no">1</span> Kartengröße</h2>
+        <div class="segmented" role="radiogroup" aria-label="Kartengröße">
+          <button class="seg" data-size="big" role="radio" aria-checked="true">
+            Groß
+            <small>Magic · Pokémon</small>
+          </button>
+          <button class="seg" data-size="small" role="radio" aria-checked="false">
+            Klein
+            <small>Yu-Gi-Oh</small>
+          </button>
+          <button class="seg" data-size="custom" role="radio" aria-checked="false">
+            Eigene
+            <small>mm frei</small>
+          </button>
+        </div>
+        <div class="custom-dims" id="customDims" hidden>
+          <label>Breite
+            <span class="field"><input type="number" id="customW" min="10" max="200" step="0.1" value="63.5" /><i>mm</i></span>
+          </label>
+          <label>Höhe
+            <span class="field"><input type="number" id="customH" min="10" max="300" step="0.1" value="88.9" /><i>mm</i></span>
+          </label>
+        </div>
+      </section>
+
+      <section class="step">
+        <h2><span class="step-no">2</span> Scan laden</h2>
+        <label class="dropzone" id="dropzone" tabindex="0">
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,application/pdf" hidden />
+          <span class="dz-icon" aria-hidden="true">⬆</span>
+          <span class="dz-title">Datei ablegen oder wählen</span>
+          <span class="dz-sub">JPG · PNG · PDF (1 Seite, 8 Karten)</span>
+        </label>
+        <p class="filename" id="filename" hidden></p>
+      </section>
+
+      <section class="step" id="rasterStep" data-disabled="true">
+        <h2><span class="step-no">3</span> Raster ausrichten
+          <button class="help" data-tip="Ziehe das Raster mit der Maus (grob) oder nutze die Pfeiltasten für 1&nbsp;px. Shift+Pfeil = 10&nbsp;px.">?</button>
+        </h2>
+
+        <label class="slider">
+          <span>Rastergröße</span>
+          <input type="range" id="scale" min="0.30" max="0.49" step="0.005" value="0.44" />
+        </label>
+
+        <div class="offset-pad">
+          <span class="offset-label">Feinversatz</span>
+          <div class="dpad" role="group" aria-label="Raster verschieben">
+            <button class="dpad-btn up" data-nudge="up" aria-label="Nach oben">▲</button>
+            <button class="dpad-btn left" data-nudge="left" aria-label="Nach links">◀</button>
+            <button class="dpad-btn center" data-nudge="reset" aria-label="Zurücksetzen">◎</button>
+            <button class="dpad-btn right" data-nudge="right" aria-label="Nach rechts">▶</button>
+            <button class="dpad-btn down" data-nudge="down" aria-label="Nach unten">▼</button>
+          </div>
+          <span class="offset-readout" id="offsetReadout">0, 0 px</span>
+        </div>
+
+        <button class="primary" id="cropBtn">Croppen &amp; Vorschau</button>
+      </section>
+    </aside>
+
+    <!-- ===================== BÜHNE ===================== -->
+    <section class="panel stage">
+      <div class="stage-empty" id="stageEmpty">
+        <div class="empty-illustration" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <h3>Noch kein Scan geladen</h3>
+        <p>Wähle links eine Kartengröße und lade deinen Scan. <br />Das Raster erscheint dann direkt hier drüber.</p>
+      </div>
+
+      <div class="canvas-wrap" id="canvasWrap" hidden>
+        <canvas id="editor" tabindex="0" aria-label="Scan mit Raster, verschiebbar per Maus und Pfeiltasten"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== VORSCHAU / DOWNLOAD ===================== -->
+  <section class="panel results" id="results" hidden>
+    <div class="results-head">
+      <h2>Vorschau <span class="count">8 Karten</span></h2>
+      <button class="primary zip" id="zipBtn">Alle als ZIP</button>
+    </div>
+    <div class="grid-cards" id="cardsGrid"></div>
+    <p class="hint">Doppelklick auf eine Karte zoomt sie (100 → 150 → 200&nbsp;%).</p>
+  </section>
+
+  <footer class="app-footer">
+    Läuft komplett im Browser · nichts wird hochgeladen · Downloads in Originalauflösung (JPG&nbsp;90&nbsp;%)
+  </footer>
+
+  <!-- Ladeanzeige -->
+  <div class="overlay" id="spinner" hidden>
+    <div class="spinner-box">
+      <div class="ring" aria-hidden="true"></div>
+      <p id="spinnerText">Verarbeite …</p>
+    </div>
+  </div>
+
+  <!-- Tooltip -->
+  <div class="tooltip" id="tooltip" role="tooltip" hidden></div>
+
+  <!-- Bibliotheken liegen lokal im Repo — kein fremder Server nötig. -->
+  <script src="vendor/pdf.min.js" defer></script>
+  <script src="vendor/jszip.min.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

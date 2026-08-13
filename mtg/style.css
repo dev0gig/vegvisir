@@ -1,0 +1,459 @@
+
+
+* {
+    box-sizing: border-box;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+body {
+    background: #1a1e24;
+    color: #e0e4eb;
+    padding: 2rem 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    max-width: 1100px;
+    width: 100%;
+    background: #262c34;
+    border-radius: 1rem;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+    font-weight: 500;
+    margin-top: 0;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+h1 small {
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: #9aa5b5;
+    margin-left: auto;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 1.2rem 0;
+}
+
+.col {
+    flex: 1 1 200px;
+    min-width: 160px;
+}
+
+label {
+    display: block;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #9aa5b5;
+    margin-bottom: 0.3rem;
+}
+
+input {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #3e4651;
+    background: #1e242b;
+    color: #eef2f8;
+    font-size: 1rem;
+}
+
+input:focus {
+    outline: none;
+    border-color: #7b8fa5;
+}
+
+.set-grid-wrapper {
+    position: relative;
+}
+
+.set-search-input {
+    margin-bottom: 0.6rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #3e4651;
+    background: #1e242b;
+    color: #eef2f8;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+.set-search-input:focus {
+    outline: none;
+    border-color: #7b8fa5;
+}
+
+.set-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.5rem;
+    max-height: 260px;
+    overflow-y: auto;
+    padding: 0.4rem 0.2rem;
+    background: #1e242b;
+    border-radius: 10px;
+    border: 1px solid #323a44;
+}
+
+.set-icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #2a323c;
+    border-radius: 8px;
+    padding: 0.4rem 0.2rem;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: 0.15s;
+    text-align: center;
+    font-size: 0.6rem;
+    color: #bcc6d4;
+    min-height: 80px;
+    position: relative;
+}
+
+.set-icon-item:hover {
+    background: #35404d;
+    border-color: #6a7f98;
+}
+
+.set-icon-item.selected {
+    border-color: #f6b83d;
+    background: #3a3a2a;
+}
+
+.set-icon-item .load-indicator {
+    position: absolute;
+    bottom: 2px;
+    left: 4px;
+    right: 4px;
+    display: flex;
+    gap: 2px;
+    height: 4px;
+}
+
+.set-icon-item .load-indicator span {
+    flex: 1;
+    border-radius: 2px;
+    background: #4a5568;
+    transition: background 0.3s;
+}
+
+.set-icon-item .load-indicator span.en-loaded {
+    background: #48bb78;
+}
+
+.set-icon-item .load-indicator span.de-loaded {
+    background: #4299e1;
+}
+
+.set-icon-item img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    margin-bottom: 2px;
+    filter: brightness(0) invert(1);
+}
+
+.set-icon-item .set-code {
+    font-weight: 600;
+    font-size: 0.55rem;
+    color: #b0bcca;
+}
+
+.set-icon-item .set-name {
+    font-size: 0.5rem;
+    color: #7a8a9e;
+    max-width: 70px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.set-icon-item .load-status {
+    font-size: 0.45rem;
+    color: #6a7a8e;
+    margin-top: 1px;
+}
+
+.search-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin: 1.2rem 0;
+}
+
+.search-section input {
+    flex: 3 1 220px;
+}
+
+.search-section button {
+    flex: 0 0 auto;
+    padding: 0.6rem 1.6rem;
+    border: none;
+    border-radius: 8px;
+    background: #3e6b8c;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.15s;
+    font-size: 1rem;
+}
+
+.search-section button:hover {
+    background: #4f7fa3;
+}
+
+.search-section button:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.suggestions {
+    background: #1e242b;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 0.3rem;
+    border: 1px solid #323a44;
+}
+
+.suggestion-item {
+    padding: 0.5rem 0.8rem;
+    cursor: pointer;
+    border-bottom: 1px solid #2a323c;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+}
+
+.suggestion-item:hover {
+    background: #2f3845;
+}
+
+.suggestion-item .suggestion-set {
+    color: #8fa0b3;
+    font-size: 0.75rem;
+}
+
+.suggestion-item .suggestion-name {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+}
+
+.suggestion-item .suggestion-name .lang-badge {
+    font-size: 0.55rem;
+    background: #2f3b48;
+    padding: 0.05rem 0.4rem;
+    border-radius: 10px;
+    color: #8a9aae;
+}
+
+.badge {
+    background: #2f3b48;
+    padding: 0.1rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+}
+
+.card-list {
+    background: #1a1e24;
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 0.8rem 0;
+    border: 1px solid #2f3845;
+}
+
+.card-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3rem 0.2rem;
+    border-bottom: 1px solid #262c34;
+    font-size: 0.9rem;
+}
+
+.card-list-item .remove-btn {
+    background: none;
+    border: none;
+    color: #b55a5a;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0 0.4rem;
+}
+
+.card-list-item .remove-btn:hover {
+    color: #e07474;
+}
+
+.export-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 1rem;
+    align-items: center;
+}
+
+.export-area textarea {
+    flex: 1 1 100%;
+    background: #1a1e24;
+    border: 1px solid #2f3845;
+    border-radius: 8px;
+    color: #d4dce6;
+    padding: 0.8rem;
+    font-size: 0.8rem;
+    min-height: 120px;
+    resize: vertical;
+    font-family: 'Courier New', monospace;
+}
+
+.export-area button {
+    padding: 0.6rem 1.6rem;
+    border: none;
+    border-radius: 8px;
+    background: #4f7a5c;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.export-area button:hover {
+    background: #5f9270;
+}
+
+.status {
+    font-size: 0.85rem;
+    color: #9aa5b5;
+    padding: 0.3rem 0;
+}
+
+.status strong {
+    color: #d4dce6;
+}
+
+.flex-center {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.mt-1 {
+    margin-top: 0.6rem;
+}
+
+.mb-1 {
+    margin-bottom: 0.6rem;
+}
+
+.text-muted {
+    color: #8a96a8;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.info-box {
+    background: #1e2a2e;
+    border-left: 3px solid #f6b83d;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin: 0.5rem 0;
+    color: #bccad8;
+}
+
+.info-box strong {
+    color: #f6b83d;
+}
+
+.save-indicator {
+    font-size: 0.7rem;
+    color: #6a8a5a;
+    margin-left: 0.5rem;
+}
+
+.set-counter {
+    font-size: 0.7rem;
+    color: #8a9aae;
+    margin-left: 0.5rem;
+}
+
+.no-results {
+    grid-column: 1 / -1;
+    padding: 1rem;
+    text-align: center;
+    color: #7a8a9e;
+    font-size: 0.85rem;
+}
+
+.german-name {
+    color: #f6b83d;
+    font-weight: 400;
+}
+
+.english-name {
+    color: #8a96a8;
+    font-weight: 300;
+}
+
+.legend {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.65rem;
+    color: #7a8a9e;
+    margin-top: 0.3rem;
+    align-items: center;
+}
+
+.legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    display: inline-block;
+    margin-right: 3px;
+}
+
+.legend-dot.en {
+    background: #48bb78;
+}
+
+.legend-dot.de {
+    background: #4299e1;
+}
+
+@media (max-width: 600px) {
+    .container {
+        padding: 1rem;
+    }
+    .set-icon-grid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    }
+}
+/* Zurück-Link zur Vegvisir-Startseite (die Seite lebt jetzt als Unterseite
+   im vegvisir-Repo). */
+.veg-back {
+    display: inline-block;
+    margin-bottom: 0.8rem;
+    color: #9aa5b5;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+.veg-back:hover { color: #e0e4eb; }
